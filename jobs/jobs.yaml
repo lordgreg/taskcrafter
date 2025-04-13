@@ -6,7 +6,7 @@ jobs:
     container:
       image: alpine:latest
       command: |-
-        env
+        sh -c 'echo Hello from container! && env'
       engine: podman
 #   - id: delayed_job_with_timeoutpo
 #     name: Delayed Job with Timeout
