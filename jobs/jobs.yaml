@@ -1,0 +1,21 @@
+jobs:
+  - id: deploy
+    name: Deploy Job
+    plugin: echo
+    params:
+      message: "Deploying the project..."
+    depends_on:
+      - build
+      - test
+  - id: test
+    name: Test Job
+    plugin: echo
+    params:
+      message: "Running tests..."
+    depends_on:
+      - build
+  - id: build
+    name: Build Job
+    plugin: echo
+    params:
+      message: "Building the project..."

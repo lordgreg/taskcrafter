@@ -47,6 +47,7 @@ def plugin_execute(name, params):
         raise ValueError(f"Plugin {name} not found.")
     plugin = registry[name]
     try:
-        return plugin.run(params)
+        plugin.run(params)
+        return plugin
     except Exception as e:
         app_logger.error(f"Plugin {name} failed: {e}")

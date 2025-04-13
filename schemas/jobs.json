@@ -23,6 +23,12 @@
               "type": "string"
             }
           },
+          "on_finish": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "depends_on": {
             "type": "array",
             "items": {

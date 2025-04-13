@@ -1,10 +1,10 @@
 import click
-from taskcrafter.job_loader import load_jobs, job_get, validate, run_job
+from taskcrafter.job_loader import JobManager
 from taskcrafter.plugin_loader import plugin_list, init_plugins
-from taskcrafter.scheduler import schedule_job, start_scheduler
+from taskcrafter.scheduler import SchedulerManager
 from taskcrafter.logger import app_logger
 
-JOBS_FILE = "jobs/my_jobs.yaml"
+JOBS_FILE = "jobs/jobs.yaml"
 
 
 @click.group()
@@ -25,11 +25,11 @@ def help():
 def list(file=JOBS_FILE):
     """List all jobs from YAML file."""
     app_logger.info(f"Listing all jobs from {file}...")
-    validate(file)
 
-    jobs = load_jobs(file)
+    jobManager = JobManager(file)
+    jobManager.validate()
 
-    for job in jobs:
+    for job in jobManager.jobs:
         app_logger.info(f"  {job.id} - {job.name}")
 
 
@@ -39,30 +39,32 @@ def list(file=JOBS_FILE):
 def run(job, file=JOBS_FILE):
     """Run a job from YAML file."""
 
-    validate(file)
+    jobManager = JobManager(file)
+    jobManager.validate()
 
     init_plugins()
-    jobs = load_jobs(file)
-    has_scheduled_jobs = False
 
     if job:
-        job = job_get(job, jobs)
-        jobs = [job]
+        job = jobManager.job_get_by_id(job, jobs)
+        jobManager.jobs = [job]
 
     # filter jobs, if .enabled=True
-    jobs = [j for j in jobs if j.enabled is True]
+    jobs = [j for j in jobManager.jobs if j.enabled is True]
+
+    has_scheduled_jobs = len([j for j in jobs if j.schedule]) > 0
+
+    if has_scheduled_jobs:
+        schedulerManager = SchedulerManager(jobManager)
+
 
     for job in jobs:
         if job.schedule:
-            has_scheduled_jobs = True
-            schedule_job(job)
+            schedulerManager.schedule_job(job)
         else:
-            app_logger.info(
-                    f"Running job: {job.id} with plugin {job.plugin}...")
-            run_job(job)
+            jobManager.run_job(job)
 
     if has_scheduled_jobs:
-        start_scheduler()
+        schedulerManager.start_scheduler()
 
 
 @cli.command()
