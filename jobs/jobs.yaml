@@ -1,12 +1,12 @@
 jobs:
   - id: hello_from_container
-    name: Hello from Container
+    name: Container Job 💬
     params:
-      message: "Hello from container!"
+      message: "Hello from %JOB_NAME% container!"
     container:
       image: alpine:latest
       command: |-
-        sh -c 'echo Hello from container! && env'
+        sh -c 'echo ">>>" ${message}! "<<<" && env'
       engine: podman
 #   - id: delayed_job_with_timeoutpo
 #     name: Delayed Job with Timeout

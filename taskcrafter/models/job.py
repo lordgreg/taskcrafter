@@ -33,7 +33,7 @@ class JobContainer:
         if self.engine == "docker":
             return "unix://var/run/docker.sock"
         elif self.engine == "podman":
-            return "unix://run/user/999/podman/podman.sock"
+            return "unix://run/user/1000/podman/podman.sock"
 
 
 class Job:

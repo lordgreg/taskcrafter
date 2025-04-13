@@ -5,8 +5,7 @@ import docker
 DOCKER_TIMEOUT = 10
 
 
-def run_job_in_docker(job, params):
-    # docker_client = docker.from_env()
+def run_job_in_docker(job, params: dict = None):
     docker_client = docker.DockerClient(
         base_url=job.container.get_engine_url(),
         version="auto",
@@ -20,8 +19,8 @@ def run_job_in_docker(job, params):
             command=job.container.command,  # Primer ukaza za zagon
             # volumes={
             #     "/path/to/job/data": {"bind": "/app/data", "mode": "rw"}
-            # },  # Nastavitve mapiranja
-            environment={"JOB_PARAMS": params},  # Posredovanje parametrov
+            # },
+            environment=params,  # Posredovanje parametrov
             detach=True,  # Zaženi v ozadju
         )
 
