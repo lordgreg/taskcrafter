@@ -1,32 +1,52 @@
-# Variables
-MAINFILE = main.py
-OUTPUT_DIR = dist
-PYINSTALLER = pyinstaller
+.PHONY: help format lint test coverage all clean build
 
-# Default target
-all: build
+PYTHON := python3
+SRC_DIR := taskcrafter
+TEST_DIR := tests
+ENTRY_POINT := main.py
+APP_NAME := taskcrafter
 
-# Build the executable using pyinstaller
-build:
-	$(PYINSTALLER) --onefile $(MAINFILE)
-
-# Clean up build artifacts
-clean:
-	rm -rf $(OUTPUT_DIR) build *.spec
-
-# Run the Python script
-run:
-	python3 $(MAINFILE)
-
-# Install dependencies
-install:
-	pip install -r requirements.txt
-
-# Help message
 help:
-	@echo "Available targets:"
-	@echo "  build     - Build the executable using pyinstaller"
-	@echo "  clean     - Remove build artifacts"
-	@echo "  run       - Run the Python script"
-	@echo "  install   - Install dependencies from requirements.txt"
-	@echo "  help      - Show this help message"
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Targets:"
+	@echo "  lint       Run flake8 and mypy"
+	@echo "  test       Run tests with pytest"
+	@echo "  coverage   Run tests and show coverage"
+	@echo "  build      Build standalone binary with PyInstaller"
+	@echo "  all        Run format, lint and test"
+	@echo "  clean      Remove temporary files and build artifacts"
+	@echo "  docker     Build and run container (use CONTAINER_TOOL to specify podman or docker)"
+
+lint:
+	flake8 $(SRC_DIR) $(TEST_DIR)
+	mypy $(SRC_DIR)
+
+test:
+	pytest $(TEST_DIR)
+
+coverage:
+	pytest --cov=$(SRC_DIR) --cov-report=term-missing $(TEST_DIR)
+
+build:
+	pyinstaller --onefile --name $(APP_NAME) --clean $(ENTRY_POINT)
+
+all: format lint test
+
+clean:
+	find . -type d -name "__pycache__" -exec rm -r {} +
+	rm -rf .pytest_cache .mypy_cache .coverage dist build *.spec
+
+docker:
+	@if [ -z "$(CONTAINER_TOOL)" ]; then \
+		if command -v podman >/dev/null 2>&1; then \
+			@echo "Using Podman as the container tool"; \
+			CONTAINER_TOOL=podman; \
+		else \
+			@echo "Using Docker as the container tool"; \
+			CONTAINER_TOOL=docker; \
+		fi; \
+	fi; \
+	$$CONTAINER_TOOL build -t $(APP_NAME) .; \
+	@echo "Container for $(APP_NAME) built and run successfully using $$CONTAINER_TOOL."
+	@echo "You can now access the application in the container."
