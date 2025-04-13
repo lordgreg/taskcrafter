@@ -136,11 +136,13 @@ class JobManager:
                     app_logger.info(f"Running job {job.id} in container...")
                     run_job_in_docker(job, resolved_params)
                 else:
-                    from multiprocessing import Process
+                    from multiprocessing import Process, Queue
+
+                    queue = Queue()
 
                     process = Process(
                         target=plugin_execute,
-                        args=(job.plugin, resolved_params),
+                        args=(job.plugin, resolved_params, queue),
                     )
                     process.start()
                     if job.timeout and process.is_alive():
@@ -149,6 +151,10 @@ class JobManager:
                         raise TimeoutError()
                     else:
                         process.join()
+                        queue_result = queue.get()
+                        if isinstance(queue_result, Exception):
+                            app_logger.error(f"Job {job.id} failed: {queue_result}")
+                            raise queue_result
 
                     process.terminate()
 

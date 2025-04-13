@@ -1,6 +1,7 @@
 import os
 import pathlib
 import importlib
+from multiprocessing import Queue
 from taskcrafter.logger import app_logger
 from taskcrafter.models.plugin import PluginEntry
 
@@ -25,7 +26,7 @@ def plugin_list() -> list[PluginEntry]:
     return registry.values()
 
 
-def plugin_execute(name, params):
+def plugin_execute(name: str, params: dict, queue: Queue) -> PluginEntry:
     """Execute a plugin."""
     if name not in registry:
         app_logger.error(f"Plugin {name} not found.")
@@ -33,7 +34,9 @@ def plugin_execute(name, params):
     plugin = registry[name]
     try:
         plugin.run(params)
+        queue.put(plugin)
         return plugin
     except Exception as e:
         app_logger.error(f"Plugin {name} failed: {e}")
+        queue.put(e)
         raise e
