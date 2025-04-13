@@ -8,8 +8,6 @@ class Plugin:
 
         title = params.get("title", "TaskCrafter Notification")
         message = params.get("message", "Hello World!")
-        # icon = params.get("icon", None)
-        # timeout = params.get("timeout", 5)
 
         print(f"Sending notification: {title} - {message}")
 

@@ -29,13 +29,13 @@ def plugin_list() -> list[PluginEntry]:
 def plugin_execute(name: str, params: dict, queue: Queue) -> PluginEntry:
     """Execute a plugin."""
     if name not in registry:
-        app_logger.error(f"Plugin {name} not found.")
         raise ValueError(f"Plugin {name} not found.")
+
     plugin = registry[name]
+
     try:
         plugin.run(params)
         queue.put(plugin)
         return plugin
     except Exception as e:
         queue.put(e)
-        raise e

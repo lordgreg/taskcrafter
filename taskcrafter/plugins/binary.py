@@ -15,12 +15,14 @@ class Plugin:
         args = params.get("args", [])
         env = os.environ.copy()
         env.update(params.get("env", {}))
+        os.environ.update(env)
 
         try:
             result = subprocess.run(
                 [path] + args,
                 env=env,
                 capture_output=True,
+                shell=False,
                 text=True,
                 check=True,
             )

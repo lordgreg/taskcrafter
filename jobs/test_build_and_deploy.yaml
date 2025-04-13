@@ -1,0 +1,33 @@
+jobs:
+  - id: deploy
+    name: Deploy Job
+    plugin: echo
+    params:
+      message: "Deploying the project..."
+    depends_on:
+      - build
+      - test
+    on_success:
+      - deploy_success
+  - id: test
+    name: Test Job
+    plugin: url
+    params:
+      url: "https://docs.python.org/3"
+    depends_on:
+      - build
+  - id: build
+    name: Build Job
+    plugin: binary
+    params:
+      command: bash
+      args:
+        - "-c"
+        - echo "Your shell is $SHELL $((RANDOM % 100))"
+  - id: deploy_success
+    enabled: false
+    name: Deploy Success Job
+    plugin: delayed_echo
+    params:
+      delay: 5
+      message: "Build succeeded!"
