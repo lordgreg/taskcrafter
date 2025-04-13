@@ -3,6 +3,7 @@ from taskcrafter.job_loader import JobManager
 from taskcrafter.plugin_loader import plugin_list, init_plugins
 from taskcrafter.scheduler import SchedulerManager
 from taskcrafter.logger import app_logger
+from taskcrafter.preview import rich_preview
 
 JOBS_FILE = "jobs/jobs.yaml"
 
@@ -70,6 +71,16 @@ def plugins():
         return
     for name, description in plugins:
         app_logger.info(f"Plugin {name} - {description}")
+
+
+@cli.command()
+@click.option(
+    "--file", type=click.Path(exists=True), default=JOBS_FILE, help="Name of the file."
+)
+def preview(file, view: bool):
+    """Preview the job dependency graph."""
+    jobs = JobManager(file).jobs
+    rich_preview(jobs)
 
 
 if __name__ == "__main__":
