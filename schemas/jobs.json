@@ -59,9 +59,45 @@
           "timeout": {
             "type": "integer",
             "description": "Timeout in seconds"
+          },
+          "container": {
+            "type": "object",
+            "description": "Container configuration",
+            "properties": {
+              "image": {
+                "type": "string",
+                "description": "Docker image to use"
+              },
+              "env": {
+                "type": "object",
+                "description": "Environment variables for the container"
+              },
+              "volumes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "command": {
+                "type": "string",
+                "description": "Command to run in the container"
+              },
+              "engine": {
+                "type": "string",
+                "description": "Container engine to use (e.g., docker, podman)"
+              }
+            },
+            "required": ["image", "command"]
           }
         },
-        "required": ["id", "name", "plugin"],
+        "oneOf": [
+          {
+            "required": ["id", "name", "plugin"]
+          },
+          {
+            "required": ["id", "name", "container"]
+          }
+        ],
         "additionalProperties": true
       }
     }

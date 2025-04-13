@@ -7,6 +7,7 @@ import json
 from jsonschema import validate as jsonschema_validate, ValidationError
 from taskcrafter.plugin_loader import plugin_execute
 from taskcrafter.logger import app_logger
+from taskcrafter.container import run_job_in_docker
 from taskcrafter.util.templater import apply_templates_to_params
 
 
@@ -46,12 +47,34 @@ class JobRetry:
         self.interval = interval
 
 
+class JobContainer:
+    def __init__(
+        self,
+        image: str,
+        command: str,
+        env: dict = None,
+        volumes: list[str] = None,
+        engine=None,
+    ):
+        self.image = image
+        self.command = command
+        self.env = env or {}
+        self.volumes = volumes or []
+        self.engine = engine or "docker"  # Default to Docker if not specified
+
+    def get_engine_url(self):
+        if self.engine == "docker":
+            return "unix://var/run/docker.sock"
+        elif self.engine == "podman":
+            return "unix://run/user/1000/podman/podman.sock"
+
+
 class Job:
     def __init__(
         self,
         id,
         name,
-        plugin,
+        plugin=None,
         params=None,
         schedule=None,
         on_success=None,
@@ -61,6 +84,7 @@ class Job:
         enabled=True,
         max_retries=None,
         timeout=None,
+        container=None,
     ):
         self.id = id
         self.name = name
@@ -78,6 +102,8 @@ class Job:
             self.max_retries: JobRetry = JobRetry(**max_retries)
         self.timeout = timeout
         self.status = None
+        if container:
+            self.container: JobContainer = JobContainer(**container)
 
     def set_status(self, status: JobStatus):
         self.status = status
@@ -185,21 +211,26 @@ class JobManager:
                 time.sleep(job.max_retries.interval)
             try:
                 resolved_params = apply_templates_to_params(job.params, context(job))
-                from multiprocessing import Process, Queue
 
-                process = Process(
-                    target=plugin_execute,
-                    args=(job.plugin, resolved_params),
-                )
-                process.start()
-                if job.timeout and process.is_alive():
-                    process.join(timeout=job.timeout)
-                    process.terminate()
-                    raise TimeoutError()
+                if job.container:
+                    app_logger.info(f"Running job {job.id} in container...")
+                    run_job_in_docker(job, resolved_params)
                 else:
-                    process.join()
+                    from multiprocessing import Process
 
-                process.terminate()
+                    process = Process(
+                        target=plugin_execute,
+                        args=(job.plugin, resolved_params),
+                    )
+                    process.start()
+                    if job.timeout and process.is_alive():
+                        process.join(timeout=job.timeout)
+                        process.terminate()
+                        raise TimeoutError()
+                    else:
+                        process.join()
+
+                    process.terminate()
 
                 app_logger.info(f"Job {job.id} executed successfully.")
                 for on_success in job.on_success:
