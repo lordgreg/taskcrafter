@@ -1,5 +1,3 @@
-# README.md - TaskCrafter
-
 # 🛠️ TaskCrafter
 
 TaskCrafter is a developer-first, CLI-based task scheduler that lets you define jobs in YAML, chain them with flexible logic, and extend them with Python plugins, shell scripts, or containers. Ideal for automating workflows without bloated CI/CD systems.
