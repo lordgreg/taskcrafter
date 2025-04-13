@@ -1,6 +1,3 @@
-from datetime import datetime
-
-
 def apply_template(value: str, context: dict) -> str:
     """Replace known placeholders in the value using context dictionary."""
     for key, val in context.items():

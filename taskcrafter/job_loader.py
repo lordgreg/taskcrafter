@@ -1,7 +1,6 @@
 import os
 import time
 from datetime import datetime
-from enum import Enum
 import yaml
 import json
 from jsonschema import validate as jsonschema_validate, ValidationError
@@ -50,7 +49,7 @@ class JobManager:
 
         return job
 
-    def load_job_file(name: str):
+    def load_job_file(self, name: str) -> str:
         """Load a file."""
         if not os.path.isfile(name):
             app_logger.error(f"File {name} does not exist.")
@@ -60,7 +59,7 @@ class JobManager:
         return content
 
     def load_jobs(self, name: str):
-        content = JobManager.load_job_file(name)
+        content = self.load_job_file(name)
 
         jobs = []
 
@@ -94,7 +93,7 @@ class JobManager:
             app_logger.error(f"Validation error: {e.message}")
             raise ValueError(f"Validation error: {e.message}")
 
-    def run_job(self, job: Job, execution_stack: list[str] = None, force: bool = False):
+    def run_job(self, job: Job, execution_stack: list[str] = [], force: bool = False):
         """Run a job."""
         execution_stack = execution_stack or []
 
@@ -161,7 +160,7 @@ class JobManager:
 
                 job.set_status(JobStatus.SUCCESS)
                 break
-            except TimeoutError as e:
+            except TimeoutError:
                 app_logger.error(f"Job {job.id} timed out.")
                 job.set_status(JobStatus.ERROR)
                 break
@@ -181,9 +180,11 @@ class JobManager:
         dependant_jobs = [
             j
             for j in self.jobs
-            if job.id in j.depends_on
-            and j.get_status() == JobStatus.PENDING
-            and job.get_status() == JobStatus.SUCCESS
+            if (
+                job.id in j.depends_on
+                and j.get_status() == JobStatus.PENDING
+                and job.get_status() == JobStatus.SUCCESS
+            )
         ]
         for dep_job in dependant_jobs:
             if not dep_job.enabled:

@@ -4,14 +4,24 @@ from taskcrafter.plugin_loader import plugin_list, init_plugins
 from taskcrafter.scheduler import SchedulerManager
 from taskcrafter.logger import app_logger
 from taskcrafter.preview import rich_preview
+from taskcrafter.models.app_config import AppConfig
 
 JOBS_FILE = "jobs/jobs.yaml"
 
+app_config = AppConfig()
+
 
 @click.group()
-def cli():
+@click.option(
+    "--file",
+    type=click.Path(exists=True),
+    default=JOBS_FILE,
+    help="Name of the jobs file (yaml).",
+)
+def cli(file=JOBS_FILE):
     """CLI for TaskCrafter."""
-    pass
+
+    app_config.jobs_file = file
 
 
 @cli.command()
@@ -21,14 +31,11 @@ def help():
 
 
 @cli.command()
-@click.option(
-    "--file", default=JOBS_FILE, help=f"Name of the jobs file (default: {JOBS_FILE})."
-)
-def list(file=JOBS_FILE):
+def list():
     """List all jobs from YAML file."""
-    app_logger.info(f"Listing all jobs from {file}...")
+    app_logger.info(f"Listing all jobs from {app_config.jobs_file}...")
 
-    jobManager = JobManager(file)
+    jobManager = JobManager(app_config.jobs_file)
     jobManager.validate()
 
     for job in jobManager.jobs:
@@ -37,11 +44,10 @@ def list(file=JOBS_FILE):
 
 @cli.command()
 @click.option("--job", help="Name of the job.")
-@click.option("--file", default=JOBS_FILE, help="Name of the file.")
-def run(job, file=JOBS_FILE):
+def run(job):
     """Run a job from YAML file."""
 
-    jobManager = JobManager(file)
+    jobManager = JobManager(app_config.jobs_file)
     jobManager.validate()
 
     init_plugins()
@@ -74,12 +80,9 @@ def plugins():
 
 
 @cli.command()
-@click.option(
-    "--file", type=click.Path(exists=True), default=JOBS_FILE, help="Name of the file."
-)
-def preview(file):
+def preview():
     """Preview the job dependency graph."""
-    jobs = JobManager(file).jobs
+    jobs = JobManager(app_config.jobs_file).jobs
     rich_preview(jobs)
 
 

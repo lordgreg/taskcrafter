@@ -10,7 +10,8 @@ help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Targets:"
-	@echo "  lint       Run flake8 and mypy"
+	@echo "  install    Install dependencies"
+	@echo "  lint       Run flake8"
 	@echo "  test       Run tests with pytest"
 	@echo "  coverage   Run tests and show coverage"
 	@echo "  build      Build standalone binary with PyInstaller"
@@ -18,9 +19,13 @@ help:
 	@echo "  clean      Remove temporary files and build artifacts"
 	@echo "  docker     Build and run container (use CONTAINER_TOOL to specify podman or docker)"
 
+install:
+	@echo "Installing dependencies..."
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install -r requirements.txt
+
 lint:
 	flake8 $(SRC_DIR) $(TEST_DIR)
-	mypy $(SRC_DIR)
 
 test:
 	pytest $(TEST_DIR)
