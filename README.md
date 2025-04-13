@@ -15,3 +15,28 @@ Think *cron*, but smarter: YAML-defined jobs, plugin support, chaining logic, an
 
 > Automate backups, notifications, scraping, dev tasks, server jobs... all in one place.
 
+
+### Structure
+
+
+taskcrafter/
+├── taskcrafter/
+│   ├── __init__.py
+│   ├── cli.py              # glavni CLI vmesnik (click)
+│   ├── engine.py           # job executor
+│   ├── parser.py           # yaml parser
+│   ├── plugin_loader.py    # dinamični plugin sistem
+│   ├── scheduler.py        # logika odvisnosti in planiranja
+│   └── logger.py           # barvni in strukturiran izpis
+├── plugins/
+│   ├── notify_slack.py     # primer plugina
+│   ├── backup_s3.py
+│   └── ...
+├── jobs/
+│   └── my_jobs.yaml        # uporabniška definicija jobov
+├── examples/
+│   ├── s3_backup.yaml
+│   ├── db_snapshot.yaml
+├── requirements.txt
+├── README.md
+└── setup.py

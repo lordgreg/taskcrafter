@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "jobs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "plugin": { "type": "string" },
+          "params": { "type": "object" }
+        },
+        "required": ["id", "plugin"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": ["jobs"]
+}
