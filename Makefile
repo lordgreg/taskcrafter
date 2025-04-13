@@ -31,7 +31,7 @@ test:
 	pytest $(TEST_DIR)
 
 coverage:
-	pytest --cov=$(SRC_DIR) --cov-report=term-missing $(TEST_DIR)
+	pytest --cov=$(SRC_DIR) --cov-report=term-missing --cov-report html $(TEST_DIR)
 
 build:
 	pyinstaller --onefile --name $(APP_NAME) --clean $(ENTRY_POINT)
