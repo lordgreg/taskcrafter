@@ -77,7 +77,7 @@ def plugins():
 @click.option(
     "--file", type=click.Path(exists=True), default=JOBS_FILE, help="Name of the file."
 )
-def preview(file, view: bool):
+def preview(file):
     """Preview the job dependency graph."""
     jobs = JobManager(file).jobs
     rich_preview(jobs)

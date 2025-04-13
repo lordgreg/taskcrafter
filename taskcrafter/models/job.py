@@ -71,6 +71,8 @@ class Job:
         self.status = None
         if container:
             self.container: JobContainer = JobContainer(**container)
+        else:
+            self.container = None
 
     def set_status(self, status: JobStatus):
         self.status = status

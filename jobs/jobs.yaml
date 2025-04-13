@@ -1,5 +1,6 @@
 jobs:
   - id: hello_from_container
+    enabled: false
     name: Container Job 💬
     params:
       message: "Hello from %JOB_NAME% container!"
@@ -8,7 +9,16 @@ jobs:
       command: |-
         sh -c 'echo ">>>" ${message}! "<<<" && env'
       engine: podman
-#   - id: delayed_job_with_timeoutpo
+  - id: execute_binary
+    name: Execute Binary
+    plugin: binary
+    params:
+      command: echo
+      args:
+        - "Hello from %MY_ENV_VAR% container!"
+      env:
+        MY_ENV_VAR: "BATMAN(%JOB_ID%)!"
+#   - id: delayed_job_with_timeout
 #     name: Delayed Job with Timeout
 #     plugin: delayed_echo
 #     params:
@@ -52,4 +62,3 @@ jobs:
 #       message: "Building the project..."
 #     on_success:
 #       - hello
-# #
