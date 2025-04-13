@@ -34,13 +34,6 @@ class SchedulerManager:
             self.scheduler.shutdown()
             app_logger.info("Scheduler stopped.")
 
-    def execute_scheduled_job(self, job: Job):
-        """
-        Execute a scheduled job by its ID.
-        """
-        app_logger.info(f"Executing scheduled job: {job.id}")
-        self.job_manager.run_job(job)
-
     def event_listener_job(event):
         if event.exception:
             app_logger.error(
@@ -62,7 +55,7 @@ class SchedulerManager:
 
         CronTrigger.from_crontab
         self.scheduler.add_job(
-            self.execute_scheduled_job,
+            self.job_manager.run_job,
             trigger=trigger,
             args=[job],
             id=job_id,

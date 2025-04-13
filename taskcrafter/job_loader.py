@@ -45,7 +45,7 @@ class JobManager:
         job = next((j for j in self.jobs if j.id == job_id), None)
 
         if job is None:
-            raise ValueError(f"Job {job} does not exist.")
+            raise ValueError(f"Job {job_id} does not exist.")
 
         return job
 
@@ -153,7 +153,6 @@ class JobManager:
                         process.join()
                         queue_result = queue.get()
                         if isinstance(queue_result, Exception):
-                            app_logger.error(f"Job {job.id} failed: {queue_result}")
                             raise queue_result
 
                     process.terminate()

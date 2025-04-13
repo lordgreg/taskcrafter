@@ -1,6 +1,5 @@
 jobs:
   - id: hello_from_container
-    enabled: false
     name: Container Job 💬
     params:
       message: "Hello from %JOB_NAME% container!"
@@ -12,10 +11,11 @@ jobs:
   - id: execute_binary
     name: Execute Binary
     plugin: binary
+    enabled: true
     params:
       command: echo
       args:
-        - "Hello from binary!"
+        - "Hello from binary plugin."
       env:
         MY_ENV_VAR: "BATMAN(%JOB_ID%)!"
   - id: delayed_job_with_timeout
@@ -26,11 +26,11 @@ jobs:
       message: "This job (%JOB_ID%) will timeout after %JOB_TIMEOUT% seconds even though the delayed echo should start in %JOB_PARAMS_DELAY%."
     timeout: 3
   - id: hello_interval
-    name: Hello World every 10 seconds
+    name: Hello World every minute
     plugin: echo
     schedule: "* * * * *"
     params:
-      message: "Hello, World every 10 seconds!"
+      message: "Hello, World every minute!"
   - id: hello
     name: Hello World Job
     plugin: echo
@@ -54,10 +54,10 @@ jobs:
       - build
   - id: build
     name: Build Job
-    plugin: exception
+    plugin: echo
     max_retries:
       count: 3
-      interval: 90
+      interval: 10
     params:
       message: "Building the project..."
     on_success:

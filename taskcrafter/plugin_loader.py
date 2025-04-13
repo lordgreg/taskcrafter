@@ -19,7 +19,7 @@ def init_plugins():
                     instance = module.Plugin()
                     registry[instance.name] = PluginEntry(instance)
             except Exception as e:
-                app_logger.warning(f"⚠️  Failed to load plugin '{file}': {e}")
+                app_logger.warning(f"Failed to load plugin '{file}': {e}")
 
 
 def plugin_list() -> list[PluginEntry]:
@@ -37,6 +37,5 @@ def plugin_execute(name: str, params: dict, queue: Queue) -> PluginEntry:
         queue.put(plugin)
         return plugin
     except Exception as e:
-        app_logger.error(f"Plugin {name} failed: {e}")
         queue.put(e)
         raise e

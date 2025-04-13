@@ -5,8 +5,9 @@ def _setup(name: str, level: int = logging.INFO, log_file: str = None):
     """
     Setup a logger with the given name and level.
     """
+
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        "[%(asctime)s] [%(levelname)s] [%(module)s:%(funcName)s] %(message)s"
     )
 
     logger = logging.getLogger(name)
