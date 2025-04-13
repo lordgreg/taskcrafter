@@ -1,9 +1,14 @@
 import click
 from taskcrafter.logger import app_logger
 from taskcrafter.job_loader import JobManager
-from taskcrafter.plugin_loader import plugin_list, init_plugins
+from taskcrafter.plugin_loader import plugin_list, init_plugins, plugin_lookup
 from taskcrafter.scheduler import SchedulerManager
-from taskcrafter.preview import rich_preview, result_table
+from taskcrafter.preview import (
+    rich_preview,
+    result_table,
+    plugin_info_preview,
+    plugin_list_preview,
+)
 from taskcrafter.config import app_config
 
 JOBS_FILE = "jobs/jobs.yaml"
@@ -70,25 +75,46 @@ def run(job_id: str):
 
 
 @cli.command()
+def list():
+    """List all jobs from YAML file."""
+    jobs = JobManager(app_config.jobs_file).jobs
+    rich_preview(jobs)
+
+
+@click.group()
 def plugins():
+    """Manage TaskCrafter plugins."""
+    init_plugins()
+
+
+@plugins.command("list")
+def plugins_list():
     """List all available plugins."""
     app_logger.info("Listing all available plugins...")
-    init_plugins()
     plugins = plugin_list()
 
     if not plugins:
         click.echo("No plugins found.")
         app_logger.warning("No plugins found.")
         return
-    for plugin in plugins:
-        app_logger.info(f"Plugin {plugin.name} - {plugin.description}")
+
+    plugin_list_preview(plugins)
 
 
-@cli.command()
-def list():
-    """List all jobs from YAML file."""
-    jobs = JobManager(app_config.jobs_file).jobs
-    rich_preview(jobs)
+@plugins.command("info")
+@click.argument("name")
+def plugin_info(name):
+    """Show detailed info about a specific plugin."""
+    plugin = plugin_lookup(name)
+
+    if not plugin:
+        app_logger.error(f"Plugin {name} not found.")
+        return
+
+    plugin_info_preview(plugin)
+
+
+cli.add_command(plugins)
 
 
 if __name__ == "__main__":

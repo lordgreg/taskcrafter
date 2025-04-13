@@ -123,6 +123,7 @@ Targets:
 
 - [✅] Automatically exit if no jobs are running
 - [✅] Add summary table report after run
+- [✅] `plugins info <name>` added. Will try to fetch docgen from the plugin file too.
 - [ ] New plugin type: `terminate`
 - [ ] Add `before_all`, `after_all`, `on_error`, `on_skip` global hooks
 - [ ] Support for job `input` and `output` resolution

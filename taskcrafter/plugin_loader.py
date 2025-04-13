@@ -16,14 +16,25 @@ def init_plugins():
             try:
                 module = importlib.import_module(module_name)
                 if hasattr(module, "Plugin"):
+                    print(f"trying to load plugin {module.__name__}")
+
+                    docgen = None
+                    if hasattr(module, "__doc__") and module.__doc__ is not None:
+                        print(f"__doc__ found for plugin {module.__name__}")
+                        docgen = module.__doc__.strip()
+
                     instance = module.Plugin()
-                    registry[instance.name] = PluginEntry(instance)
+                    registry[instance.name] = PluginEntry(instance, docgen=docgen)
             except Exception as e:
                 app_logger.warning(f"Failed to load plugin '{file}': {e}")
 
 
 def plugin_list() -> list[PluginEntry]:
     return registry.values()
+
+
+def plugin_lookup(id: str) -> PluginEntry:
+    return registry.get(id)
 
 
 def plugin_execute(name: str, params: dict, queue: Queue) -> PluginEntry:

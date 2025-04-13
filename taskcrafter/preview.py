@@ -3,6 +3,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.text import Text
 from taskcrafter.models.job import Job, JobStatus
+from taskcrafter.models.plugin import PluginEntry
 
 console = Console()
 
@@ -73,3 +74,34 @@ def result_table(jobs: list[Job]):
         )
 
     console.print(table)
+
+
+def plugin_list_preview(plugins: list[PluginEntry]):
+    console = Console()
+
+    table = Table(title="Plugin list")
+
+    table.add_column("Name", style="cyan")
+    table.add_column("Description")
+
+    for plugin in plugins:
+        table.add_row(plugin.name, plugin.description)
+
+    console.print(table)
+
+
+def plugin_info_preview(plugin: PluginEntry):
+    console = Console()
+
+    console.print(f"[bold cyan]Plugin Info - {plugin.name}[/]")
+    console.print(f"[bold]Name:[/] {plugin.name}")
+    console.print(f"[bold]Description:[/] {plugin.description}")
+    console.print(f"[bold]Class:[/] {plugin.__class__.__name__}")
+    console.print(f"[bold]Module:[/] {plugin.__class__.__module__}")
+
+    if not plugin.docgen:
+        docgen = "[italic]No documentation available.[/]"
+    else:
+        docgen = plugin.docgen
+
+    console.print(f"\n{docgen}")
