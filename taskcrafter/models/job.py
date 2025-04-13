@@ -1,3 +1,4 @@
+import time
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Union
@@ -34,6 +35,30 @@ class JobContainer:
 
 
 @dataclass
+class JobResult:
+    retries: int = 0
+    start_time: int = 0
+    end_time: int = 0
+    status: JobStatus = None
+
+    def get_elapsed_time(self) -> int:
+        """Returns elapsed time in miliseconds"""
+        return self.end_time - self.start_time
+
+    def start(self):
+        self.start_time = time.time()
+
+    def stop(self):
+        self.end_time = time.time()
+
+    def set_status(self, status: JobStatus):
+        self.status = status
+
+    def get_status(self):
+        return self.status
+
+
+@dataclass
 class Job:
     id: str
     name: str
@@ -45,19 +70,13 @@ class Job:
     on_finish: list[str] = field(default_factory=list)
     depends_on: list[str] = field(default_factory=list)
     enabled: bool = True
-    max_retries: Union[JobRetry | None | dict] = field(default_factory=JobRetry)
+    retries: Union[JobRetry | None | dict] = field(default_factory=JobRetry)
     timeout: int = None
-    status: JobStatus = None
     container: JobContainer = None
+    result: JobResult = field(default_factory=JobResult)
 
     def __post_init__(self):
-        if isinstance(self.max_retries, dict):
-            self.max_retries = JobRetry(**self.max_retries)
+        if isinstance(self.retries, dict):
+            self.retries = JobRetry(**self.retries)
         if self.container is not None:
             self.container = JobContainer(**self.container)
-
-    def set_status(self, status: JobStatus):
-        self.status = status
-
-    def get_status(self):
-        return self.status

@@ -18,8 +18,8 @@ def test_rich_preview_with_jobs():
     job1.on_failure = ["job2"]
     job1.on_finish = ["job3"]
     job1.timeout = 10
-    job1.max_retries.count = 5
-    job1.max_retries.interval = 15
+    job1.retries.count = 5
+    job1.retries.interval = 15
 
     call = rich_preview([job1, job2, job3])
     assert call is None

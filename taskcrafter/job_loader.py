@@ -28,7 +28,7 @@ def context(job) -> dict:
         "job_on_finish": job.on_finish,
         "job_depends_on": job.depends_on,
         "job_enabled": job.enabled,
-        "job_max_retries": job.max_retries,
+        "job_retries": job.retries,
         "job_timeout": job.timeout,
         "current_time": datetime.now().isoformat(),
     } | job_params
@@ -38,6 +38,16 @@ class JobManager:
     def __init__(self, job_file: str):
         self.jobs_yaml = None
         self.jobs: list[Job] = self.load_jobs(job_file)
+
+    def get_in_progress(self) -> int:
+        return len(
+            [
+                job.id
+                for job in self.jobs
+                if not job.result.get_status() == JobStatus.SUCCESS
+                and not job.result.get_status() == JobStatus.ERROR
+            ]
+        )
 
     def job_get_by_id(self, job_id: str):
         """Check if a job exists."""
@@ -113,7 +123,7 @@ class JobManager:
         for dep in job.depends_on:
             dep_status = self.job_get_by_id(dep).get_status()
             if dep_status != JobStatus.SUCCESS:
-                job.set_status(JobStatus.PENDING)
+                job.result.set_status(JobStatus.PENDING)
                 app_logger.warning(f"Job {job.id} is waiting for job {dep} to finish.")
                 is_pending = True
 
@@ -123,12 +133,12 @@ class JobManager:
         app_logger.info(f"Running job: {job.id} ({' -> '.join(execution_stack)})...")
         attempt = 0
 
-        while attempt <= (job.max_retries.count):
+        while attempt <= (job.retries.count):
             if attempt > 0:
                 app_logger.info(
-                    f"Retrying job {job.id} ({attempt}/{job.max_retries.count}) in {job.max_retries.interval} seconds..."
+                    f"Retrying job {job.id} ({attempt}/{job.retries.count}) in {job.retries.interval} seconds..."
                 )
-                time.sleep(job.max_retries.interval)
+                time.sleep(job.retries.interval)
             try:
                 resolved_params = apply_templates_to_params(job.params, context(job))
 
@@ -163,23 +173,24 @@ class JobManager:
                     success_job = self.job_get_by_id(on_success)
                     self.run_job(success_job, execution_stack.copy(), force=True)
 
-                job.set_status(JobStatus.SUCCESS)
+                job.result.set_status(JobStatus.SUCCESS)
                 break
             except TimeoutError:
                 app_logger.error(f"Job {job.id} timed out.")
-                job.set_status(JobStatus.ERROR)
+                job.result.set_status(JobStatus.ERROR)
                 break
 
             except Exception as e:
                 app_logger.error(f"Job {job.id} executed with exception: {e}")
+                job.result.retries = attempt
                 attempt += 1
-                if attempt >= job.max_retries.count:
+                if attempt >= job.retries.count:
                     for on_failure in job.on_failure:
                         app_logger.info(f"Running on_failure jobs: {on_failure}...")
                         failure_job = self.job_get_by_id(on_failure)
                         self.run_job(failure_job, execution_stack.copy(), force=True)
 
-                    job.set_status(JobStatus.ERROR)
+                    job.result.set_status(JobStatus.ERROR)
 
         dependant_jobs = [
             j
@@ -187,7 +198,7 @@ class JobManager:
             if (
                 job.id in j.depends_on
                 and j.get_status() == JobStatus.PENDING
-                and job.get_status() == JobStatus.SUCCESS
+                and job.result.get_status() == JobStatus.SUCCESS
             )
         ]
         for dep_job in dependant_jobs:
@@ -197,7 +208,7 @@ class JobManager:
                 )
                 continue
             app_logger.info(
-                f"Running dependant job: {dep_job.id} with status {dep_job.get_status()}..."
+                f"Running dependant job: {dep_job.id} with status {dep_job.result.get_status()}..."
             )
             self.run_job(dep_job, execution_stack.copy())
 

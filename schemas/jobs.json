@@ -39,7 +39,7 @@
             "type": "boolean",
             "default": true
           },
-          "max_retries": {
+          "retries": {
             "type": "object",
             "description": "Maximum number of retries on failure",
             "properties": {

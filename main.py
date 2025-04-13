@@ -3,7 +3,7 @@ from taskcrafter.logger import app_logger
 from taskcrafter.job_loader import JobManager
 from taskcrafter.plugin_loader import plugin_list, init_plugins
 from taskcrafter.scheduler import SchedulerManager
-from taskcrafter.preview import rich_preview
+from taskcrafter.preview import rich_preview, result_table
 from taskcrafter.config import app_config
 
 JOBS_FILE = "jobs/jobs.yaml"
@@ -53,6 +53,8 @@ def run_helper(job_id: str):
         schedulerManager.schedule_job(job)
 
     schedulerManager.start_scheduler()
+
+    result_table(jobManager.jobs)
 
 
 @cli.command()

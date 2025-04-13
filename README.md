@@ -40,7 +40,7 @@ jobs:
       message: "Hello from %JOB_ID%!"
     enabled: true
     timeout: 10
-    max_retries:
+    retries:
       count: 2
       interval: 5
 
@@ -78,9 +78,9 @@ class Plugin:
 ## 🕹️ CLI Usage
 
 ```bash
-taskcrafter list                 # List all jobs
+taskcrafter list                # List all jobs
 taskcrafter run <job_id>        # Run a specific job
-taskcrafter run --all           # Run the full DAG
+taskcrafter run                 # Run the full DAG
 taskcrafter preview             # Visualize job flow
 ```
 
@@ -115,14 +115,19 @@ Targets:
 
 ## ✅ TODO Roadmap
 
-- [ ] `depends_on`, `on_finish` etc. should support job params, not just IDs
-- [ ] Add `--log-file` and `--log-level` CLI flag
-- [ ] Automatically exit if no scheduled jobs match
-- [ ] Add summary table report after run
-- [ ] Add `before_all`, `after_all`, `on_error`, `on_skip` global hooks
+- [x] `depends_on`, `on_finish` etc. should support job params, not just IDs
+      I am having 2nd thoughts on this, mainly because we can end in the loop of
+      job under the job under the job under the job..
+
+      I'll rethink the idea, if needed.
+
+- [✅] Automatically exit if no jobs are running
+- [✅] Add summary table report after run
 - [ ] New plugin type: `terminate`
+- [ ] Add `before_all`, `after_all`, `on_error`, `on_skip` global hooks
 - [ ] Support for job `input` and `output` resolution
 - [ ] Docs: Document plugin dev best practices
+- [ ] Add `--log-file` and `--log-level` CLI flag
 - [ ] More unit tests, get to 100% code coverage 😊
 
 ---

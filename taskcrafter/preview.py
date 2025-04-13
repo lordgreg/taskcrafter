@@ -1,6 +1,8 @@
 from rich.tree import Tree
+from rich.table import Table
 from rich.console import Console
-from taskcrafter.models.job import Job
+from rich.text import Text
+from taskcrafter.models.job import Job, JobStatus
 
 console = Console()
 
@@ -24,12 +26,10 @@ def rich_preview(jobs: list[Job]):
         if job.timeout:
             job_branch.add(f"Timeout: {job.timeout}s")
 
-        if job.max_retries and (
-            job.max_retries.count > 0 or job.max_retries.interval > 0
-        ):
+        if job.retries and (job.retries.count > 0 or job.retries.interval > 0):
             job_branch.add(
-                f"Retries: [bold]{job.max_retries.count}[/] every "
-                f"[bold]{job.max_retries.interval}s[/]"
+                f"Retries: [bold]{job.retries.count}[/] every "
+                f"[bold]{job.retries.interval}s[/]"
             )
 
         if job.depends_on:
@@ -43,3 +43,33 @@ def rich_preview(jobs: list[Job]):
             job_branch.add("On Finish: " + ", ".join(job.on_finish))
 
     console.print(tree)
+
+
+def result_table(jobs: list[Job]):
+    console = Console()
+    table = Table(title="Job Execution Summary")
+
+    table.add_column("ID", style="cyan", no_wrap=True)
+    table.add_column("Name", style="bold")
+    table.add_column("Status", style="bold")
+    table.add_column("Retries", style="bold")
+    table.add_column("Duration", style="bold")
+
+    for job in jobs:
+        match job.result.status:
+            case JobStatus.ERROR:
+                status = Text(job.result.get_status().value, "red")
+            case JobStatus.SUCCESS:
+                status = Text(job.result.get_status().value, "green")
+            case _:
+                status = job.result.get_status().value
+
+        table.add_row(
+            str(job.id),
+            job.name,
+            status,
+            str(job.result.retries),
+            f"{job.result.get_elapsed_time():.3f}s",
+        )
+
+    console.print(table)
