@@ -1,11 +1,16 @@
 from taskcrafter.logger import app_logger
 import docker
 
+# constant for docker timeout
+DOCKER_TIMEOUT = 10
+
 
 def run_job_in_docker(job, params):
     # docker_client = docker.from_env()
     docker_client = docker.DockerClient(
-        base_url=job.container.get_engine_url(), version="auto"
+        base_url=job.container.get_engine_url(),
+        version="auto",
+        timeout=DOCKER_TIMEOUT,
     )  # Docker client
 
     try:
@@ -20,7 +25,6 @@ def run_job_in_docker(job, params):
             detach=True,  # Zaženi v ozadju
         )
 
-        # Počakaj, da se job konča
         container.wait()  # Čaka na zaključek
 
         # Preberi izhod
