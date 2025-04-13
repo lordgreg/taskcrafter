@@ -51,3 +51,4 @@ def plugin_execute(name, params):
         return plugin
     except Exception as e:
         app_logger.error(f"Plugin {name} failed: {e}")
+        raise e

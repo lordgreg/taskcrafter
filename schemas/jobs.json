@@ -39,6 +39,23 @@
             "type": "boolean",
             "default": true
           },
+          "max_retries": {
+            "type": "object",
+            "description": "Maximum number of retries on failure",
+            "properties": {
+              "count": {
+                "type": "integer",
+                "description": "Number of retries",
+                "default": 3
+              },
+              "interval": {
+                "type": "integer",
+                "description": "Interval between retries in seconds",
+                "default": 5
+              }
+            },
+            "required": ["count", "interval"]
+          },
           "timeout": {
             "type": "integer",
             "description": "Timeout in seconds"

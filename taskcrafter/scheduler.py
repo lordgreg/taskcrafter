@@ -1,6 +1,8 @@
 import time
+from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.date import DateTrigger
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 from taskcrafter.logger import app_logger
 from taskcrafter.job_loader import JobManager, Job
@@ -20,7 +22,7 @@ class SchedulerManager:
             return
 
         self.scheduler.add_listener(
-                self.event_listener_job, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+                self.event_listener_job, EVENT_JOB_ERROR)
         self.scheduler.start()
         
         app_logger.info("Scheduler started.")
@@ -46,7 +48,7 @@ class SchedulerManager:
     def event_listener_job(event):
         if event.exception:
             app_logger.error(
-                    f"Job {event.job_id} failed with exception: {event.exception}")
+                    f"scheduler: {event.job_id} failed with exception: {event.exception}")
 
 
     def schedule_job(self, job):
@@ -54,17 +56,17 @@ class SchedulerManager:
         job_id = job.id
 
         if not cron_schedule:
-            app_logger.warning(
-                    f"Job {job_id} does not have a schedule. Skipping...")
-            return
+            trigger=DateTrigger(datetime.now())
+        else:
+            trigger = CronTrigger.from_crontab(cron_schedule)
 
         CronTrigger.from_crontab
         self.scheduler.add_job(
             self.execute_scheduled_job,
-            trigger=CronTrigger.from_crontab(cron_schedule),
+            trigger=trigger,
             args=[job],
             id=job_id,
         )
 
         app_logger.info(
-                f"Scheduled job {job_id} with cron schedule: {cron_schedule}")
+                f"Scheduled job {job_id} with schedule: {trigger}")

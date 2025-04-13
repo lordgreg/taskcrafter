@@ -45,23 +45,15 @@ def run(job, file=JOBS_FILE):
     init_plugins()
 
     if job:
-        job = jobManager.job_get_by_id(job, jobs)
+        job = jobManager.job_get_by_id(job, jobManager.jobs)
         jobManager.jobs = [job]
 
-    has_scheduled_jobs = len([j for j in jobManager.jobs if j.schedule]) > 0
-
-    if has_scheduled_jobs:
-        schedulerManager = SchedulerManager(jobManager)
-
+    schedulerManager = SchedulerManager(jobManager)
 
     for job in jobManager.jobs:
-        if job.schedule:
-            schedulerManager.schedule_job(job)
-        else:
-            jobManager.run_job(job)
+        schedulerManager.schedule_job(job)
 
-    if has_scheduled_jobs:
-        schedulerManager.start_scheduler()
+    schedulerManager.start_scheduler()
 
 
 @cli.command()

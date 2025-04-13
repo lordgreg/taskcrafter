@@ -1,4 +1,10 @@
 jobs:
+  - id: hello_interval
+    name: Hello World every 10 seconds
+    plugin: echo
+    schedule: "* * * * *"
+    params:
+      message: "Hello, World every 10 seconds!"
   - id: hello
     name: Hello World Job
     plugin: echo
@@ -22,7 +28,10 @@ jobs:
       - build
   - id: build
     name: Build Job
-    plugin: echo
+    plugin: exception
+    max_retries:
+      count: 3
+      interval: 90
     params:
       message: "Building the project..."
     on_success:
