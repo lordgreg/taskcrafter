@@ -9,6 +9,7 @@ from taskcrafter.models.app_config import AppConfig
 JOBS_FILE = "jobs/jobs.yaml"
 
 app_config = AppConfig()
+schedulerManager: SchedulerManager = None
 
 
 @click.group()
@@ -20,6 +21,7 @@ app_config = AppConfig()
 )
 def cli(file=JOBS_FILE):
     """CLI for TaskCrafter."""
+    global app_config
 
     app_config.jobs_file = file
 
@@ -30,18 +32,20 @@ def help():
     click.echo("This is the help command. Use --help for more information.")
 
 
-@cli.command()
-@click.option("--job", help="Name of the job.")
-def run(job):
-    """Run a job from YAML file."""
+def run_helper(job_id: str):
+    """
+    Core logic for running jobs. Can be called programmatically.
+    """
+    global app_config
+    global schedulerManager
 
     jobManager = JobManager(app_config.jobs_file)
     jobManager.validate()
 
     init_plugins()
 
-    if job:
-        job = jobManager.job_get_by_id(job, jobManager.jobs)
+    if job_id:
+        job = jobManager.job_get_by_id(job_id)
         jobManager.jobs = [job]
 
     schedulerManager = SchedulerManager(jobManager)
@@ -50,6 +54,19 @@ def run(job):
         schedulerManager.schedule_job(job)
 
     schedulerManager.start_scheduler()
+
+
+@cli.command()
+@click.option("--job", "job_id", help="Name of the job.")
+def run(job_id: str):
+    global app_config
+    """
+    Runs all jobs from YAML file.
+    If a --job parameter is provided, it runs only that job.
+    Restarts if app_config.jobs_file changes.
+    """
+
+    run_helper(job_id)
 
 
 @cli.command()
@@ -63,12 +80,13 @@ def plugins():
         click.echo("No plugins found.")
         app_logger.warning("No plugins found.")
         return
-    for name, description in plugins:
-        app_logger.info(f"Plugin {name} - {description}")
+    for plugin in plugins:
+        app_logger.info(f"Plugin {plugin.name} - {plugin.description}")
 
 
 @cli.command()
 def list():
+    global app_config
     """List all jobs from YAML file."""
     jobs = JobManager(app_config.jobs_file).jobs
     rich_preview(jobs)

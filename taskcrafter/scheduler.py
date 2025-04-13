@@ -51,6 +51,10 @@ class SchedulerManager:
         cron_schedule = job.schedule
         job_id = job.id
 
+        if job.enabled is False:
+            app_logger.warning(f"Job {job_id} is disabled and won't be executed.")
+            return
+
         if not cron_schedule:
             trigger = DateTrigger(datetime.now())
         else:
@@ -64,4 +68,17 @@ class SchedulerManager:
             id=job_id,
         )
 
-        app_logger.info(f"Scheduled job {job_id} with schedule: {trigger}")
+        app_logger.info(
+            f"Scheduled job {job_id} with scheduler {type(trigger).__name__}"
+        )
+
+    def stop_scheduler(self):
+        """
+        Stop the APScheduler.
+        """
+        if self.scheduler.running:
+            self.scheduler.shutdown(wait=False)
+            self.scheduler = None
+            app_logger.info("Scheduler stopped.")
+        else:
+            app_logger.warning("Scheduler is not running.")

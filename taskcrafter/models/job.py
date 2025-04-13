@@ -1,4 +1,5 @@
 from enum import Enum
+from dataclasses import dataclass, field
 
 
 class JobStatus(Enum):
@@ -8,26 +9,19 @@ class JobStatus(Enum):
     ERROR = "error"
 
 
+@dataclass
 class JobRetry:
-    def __init__(self, count: int = 0, interval: int = 0):
-        self.count = count
-        self.interval = interval
+    count: int = 0
+    interval: int = 0
 
 
+@dataclass
 class JobContainer:
-    def __init__(
-        self,
-        image: str,
-        command: str,
-        env: dict = None,
-        volumes: list[str] = None,
-        engine=None,
-    ):
-        self.image = image
-        self.command = command
-        self.env = env or {}
-        self.volumes = volumes or []
-        self.engine = engine or "docker"  # Default to Docker if not specified
+    image: str
+    command: str
+    env: dict[str, str] = None
+    volumes: list[str] = None
+    engine: str = "docker"
 
     def get_engine_url(self):
         if self.engine == "docker":
@@ -36,43 +30,28 @@ class JobContainer:
             return "unix://run/user/1000/podman/podman.sock"
 
 
+@dataclass
 class Job:
-    def __init__(
-        self,
-        id,
-        name,
-        plugin=None,
-        params=None,
-        schedule=None,
-        on_success=None,
-        on_failure=None,
-        on_finish=None,
-        depends_on=None,
-        enabled=True,
-        max_retries=None,
-        timeout=None,
-        container=None,
-    ):
-        self.id = id
-        self.name = name
-        self.plugin = plugin
-        self.params = params or {}
-        self.schedule = schedule
-        self.on_success = on_success or []
-        self.on_failure = on_failure or []
-        self.on_finish = on_finish or []
-        self.depends_on = depends_on or []
-        self.enabled = enabled
-        if max_retries is None:
-            self.max_retries = JobRetry()
-        else:
-            self.max_retries: JobRetry = JobRetry(**max_retries)
-        self.timeout = timeout
-        self.status = None
-        if container:
-            self.container: JobContainer = JobContainer(**container)
-        else:
-            self.container = None
+    id: str
+    name: str
+    plugin: str = None
+    params: dict[str, str] = None
+    schedule: str = None
+    on_success: list[str] = field(default_factory=list)
+    on_failure: list[str] = field(default_factory=list)
+    on_finish: list[str] = field(default_factory=list)
+    depends_on: list[str] = field(default_factory=list)
+    enabled: bool = True
+    max_retries: JobRetry = field(default_factory=JobRetry)
+    timeout: int = None
+    status: JobStatus = None
+    container: JobContainer = None
+
+    def __post_init__(self):
+        if self.max_retries is dict:
+            self.max_retries = JobRetry(**self.max_retries)
+        if self.container is not None:
+            self.container = JobContainer(**self.container)
 
     def set_status(self, status: JobStatus):
         self.status = status

@@ -1,11 +1,16 @@
+from dataclasses import dataclass, field
 from taskcrafter.logger import app_logger
 
 
+@dataclass
 class PluginEntry:
-    def __init__(self, instance):
-        self.name = instance.name
-        self.description = instance.description
-        self.instance = instance
+    name: str = field(init=False)
+    description: str = field(init=False)
+    instance: object
+
+    def __post_init__(self):
+        self.name = self.instance.name
+        self.description = self.instance.description
 
     def run(self, params):
         if hasattr(self.instance, "run"):

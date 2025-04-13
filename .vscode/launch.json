@@ -29,6 +29,22 @@
             "args": "run"
         },
         {
+            "name": "run single",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": "run --job execute_binary"
+        },
+        {
+            "name": "test",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": "-t"
+        }
+        {
             "name": "plugins",
             "type": "debugpy",
             "request": "launch",

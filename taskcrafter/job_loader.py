@@ -35,7 +35,7 @@ def context(job) -> dict:
 
 
 class JobManager:
-    def __init__(self, job_file):
+    def __init__(self, job_file: str):
         self.jobs_yaml = None
         self.jobs: list[Job] = self.load_jobs(job_file)
 

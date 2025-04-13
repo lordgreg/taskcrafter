@@ -4,7 +4,7 @@ import importlib
 from taskcrafter.logger import app_logger
 from taskcrafter.models.plugin import PluginEntry
 
-registry = {}
+registry: dict[str, PluginEntry] = {}
 
 
 def init_plugins():
@@ -21,8 +21,8 @@ def init_plugins():
                 app_logger.warning(f"⚠️  Failed to load plugin '{file}': {e}")
 
 
-def plugin_list():
-    return [(p.name, p.description) for p in registry.values()]
+def plugin_list() -> list[PluginEntry]:
+    return registry.values()
 
 
 def plugin_execute(name, params):

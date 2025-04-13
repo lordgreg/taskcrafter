@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class AppConfig:
-    def __init__(self):
-        self.jobs_file = None
+    jobs_file: str = None
