@@ -29,6 +29,14 @@
             "args": "run"
         },
         {
+            "name": "  run containers",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": "--file jobs/containers.yaml run"
+        },
+        {
             "name": "run single",
             "type": "debugpy",
             "request": "launch",

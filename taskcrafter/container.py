@@ -1,3 +1,4 @@
+from taskcrafter.models.job import Job
 from taskcrafter.logger import app_logger
 import docker
 
@@ -5,7 +6,7 @@ import docker
 DOCKER_TIMEOUT = 10
 
 
-def run_job_in_docker(job, params: dict = None):
+def run_job_in_docker(job: Job, params: dict = None):
     try:
         docker_client = docker.DockerClient(
             base_url=job.container.get_engine_url(),
@@ -16,11 +17,11 @@ def run_job_in_docker(job, params: dict = None):
         container = docker_client.containers.run(
             job.container.image,
             command=job.container.command,
-            # volumes={
-            #     "/path/to/job/data": {"bind": "/app/data", "mode": "rw"}
-            # },
+            volumes=job.container.volumes or {},
             environment=params,
             detach=True,
+            privileged=job.container.privileged,
+            user=job.container.user,
         )
 
         container.wait()

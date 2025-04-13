@@ -1,0 +1,39 @@
+jobs:
+  - id: create_file
+    name: Create File Job
+    plugin: binary
+    params:
+      command: bash
+      args:
+        - "-c"
+        - '
+          echo "Your shell is $SHELL $((RANDOM % 100))";
+          mkdir /tmp/configs/;
+          echo -e "Hello from %JOB_ID%!\nThis file was created in %JOB_NAME% job." > /tmp/configs/hello.txt;
+          '
+
+  - id: hello_from_container
+    name: Container Job 💬
+    params:
+      message: "Hello from %JOB_NAME% container!"
+    container:
+      image: alpine:latest
+      command: |-
+        sh -c '
+          su -
+          echo "WHO AM I? $(whoami)"
+          echo ">>>" ${message}! "<<<" && env
+          tree -a /app/configs
+          cat /app/configs/hello.txt
+
+          ## TODO: templater not parsing here. fix.
+
+          echo -e "\n\nHi from %JOB_ID%!\nThis file was created in %JOB_NAME% job." >> /app/configs/hello.txt
+          cat /app/configs/hello.txt
+        '
+      engine: podman
+      privileged: true
+      volumes:
+        - /tmp/configs:/app/configs
+    depends_on:
+      - create_file

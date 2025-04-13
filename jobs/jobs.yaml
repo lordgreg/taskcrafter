@@ -1,70 +1,38 @@
 jobs:
-  - id: hello_from_container
-    name: Container Job 💬
-    params:
-      message: "Hello from %JOB_NAME% container!"
-    container:
-      image: alpine:latest
-      command: |-
-        sh -c 'echo ">>>" ${message}! "<<<" && env'
-      engine: podman
-  - id: execute_binary
-    name: Execute Binary
-    plugin: binary
-    enabled: true
-    params:
-      command: echo
-      args:
-        - "Hello from binary plugin."
-      env:
-        MY_ENV_VAR: "BATMAN(%JOB_ID%)!"
-  - id: delayed_job_with_timeout
-    name: Delayed Job with Timeout
-    plugin: delayed_echo
-    params:
-      delay: 15
-      message: "This job (%JOB_ID%) will timeout after %JOB_TIMEOUT% seconds even though the delayed echo should start in %JOB_PARAMS_DELAY%."
-    timeout: 3
-  - id: hello_interval
-    name: Hello World every minute
-    plugin: echo
-    schedule: "* * * * *"
-    params:
-      message: "Hello, World every minute!"
+  # - id: execute_binary
+  #   name: Execute Binary
+  #   plugin: binary
+  #   enabled: true
+  #   params:
+  #     command: echo
+  #     args:
+  #       - "Hello from binary plugin."
+  #     env:
+  #       MY_ENV_VAR: "BATMAN(%JOB_ID%)!"
+  # - id: delayed_job_with_timeout
+  #   name: Delayed Job with Timeout
+  #   plugin: delayed_echo
+  #   params:
+  #     delay: 15
+  #     message: "This job (%JOB_ID%) will timeout after %JOB_TIMEOUT% seconds even though the delayed echo should start in %JOB_PARAMS_DELAY%."
+  #   timeout: 3
+  # - id: hello_interval
+  #   name: Hello World every minute
+  #   plugin: echo
+  #   schedule: "* * * * *"
+  #   params:
+  #     message: "Hello, World every minute!"
   - id: hello
     name: Hello World Job
     plugin: echo
     params:
       message: "Hello, World!"
-    enabled: false
-  - id: deploy
-    name: Deploy Job
-    plugin: echo
-    params:
-      message: "Deploying the project..."
-    depends_on:
-      - build
-      - test
-  - id: test
-    name: Test Job
-    plugin: echo
-    params:
-      message: "Running tests..."
-    depends_on:
-      - build
-  - id: build
-    name: Build Job
-    plugin: echo
-    max_retries:
-      count: 3
-      interval: 10
-    params:
-      message: "Building the project..."
     on_success:
-      - build_success
-  - id: build_success
+      - hello_world_success
+
+  - id: hello_world_success
     enabled: false
-    name: Build Success Job
+    name: Hello world Success Job
     plugin: desktop-notifier
     params:
-      message: "Build succeeded!"
+      message: "We succeeded!"

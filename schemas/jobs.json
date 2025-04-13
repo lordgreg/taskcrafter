@@ -72,7 +72,9 @@
                 "type": "object",
                 "description": "Environment variables for the container"
               },
-              "volumes": {
+              "user": { "type": "string" },
+              "privileged": { "type": "boolean", "default": false },
+              "volumes1": {
                 "type": "array",
                 "items": {
                   "type": "string"

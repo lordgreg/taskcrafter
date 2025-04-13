@@ -23,6 +23,8 @@ class JobContainer:
     env: dict[str, str] = None
     volumes: list[str] = None
     engine: str = "docker"
+    privileged: bool = False
+    user: str = None
 
     def get_engine_url(self):
         if self.engine == "docker":
