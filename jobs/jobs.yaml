@@ -61,4 +61,10 @@ jobs:
     params:
       message: "Building the project..."
     on_success:
-      - hello
+      - build_success
+  - id: build_success
+    enabled: false
+    name: Build Success Job
+    plugin: desktop-notifier
+    params:
+      message: "Build succeeded!"

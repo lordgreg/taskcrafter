@@ -181,7 +181,6 @@ class JobManager:
 
                     job.set_status(JobStatus.ERROR)
 
-        # execute dependent jobs
         dependant_jobs = [
             j
             for j in self.jobs
