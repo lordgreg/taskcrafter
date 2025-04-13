@@ -16,6 +16,8 @@ jobs:
     name: Container Job 💬
     params:
       message: "Hello from %JOB_NAME% container!"
+      job_id: "%JOB_ID%"
+      job_name: "%JOB_NAME%"
     container:
       image: alpine:latest
       command: |-
@@ -26,9 +28,7 @@ jobs:
           tree -a /app/configs
           cat /app/configs/hello.txt
 
-          ## TODO: templater not parsing here. fix.
-
-          echo -e "\n\nHi from %JOB_ID%!\nThis file was created in %JOB_NAME% job." >> /app/configs/hello.txt
+          echo -e "\n\nHi from ${job_id}!\nThis file was created in ${job_name} job." >> /app/configs/hello.txt
           cat /app/configs/hello.txt
         '
       engine: podman
