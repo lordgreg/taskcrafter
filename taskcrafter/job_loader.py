@@ -1,7 +1,7 @@
 import os
 import time
 from enum import Enum
-from typing import Optional
+from concurrent.futures import ThreadPoolExecutor
 import yaml
 import json
 from jsonschema import validate as jsonschema_validate, ValidationError
@@ -140,14 +140,21 @@ class JobManager:
 
         app_logger.info(f"Running job: {job.id} ({' -> '.join(execution_stack)}) with plugin {job.plugin}...")
         attempt = 0
-        
+
         while attempt <= (job.max_retries.count):
             if attempt > 0:
                 app_logger.info(
                     f"Retrying job {job.id} ({attempt}/{job.max_retries.count}) in {job.max_retries.interval} seconds...")
                 time.sleep(job.max_retries.interval)
             try:
-                plugin_execute(job.plugin, job.params)
+                with ThreadPoolExecutor() as executor:
+                    future = executor.submit(plugin_execute, job.plugin, job.params)
+                    if job.timeout:
+                        future.result(timeout=job.timeout)
+                    else:
+                        future.result()
+                        
+                # plugin_execute(job.plugin, job.params)
                 app_logger.info(f"Job {job.id} executed successfully.")
                 for on_success in job.on_success:
                     app_logger.info(
@@ -156,6 +163,10 @@ class JobManager:
                     self.run_job(success_job, execution_stack.copy(), force=True)
                 
                 job.set_status(JobStatus.SUCCESS)
+                break
+            except TimeoutError as e:
+                app_logger.error(f"Job {job.id} timed out.")
+                job.set_status(JobStatus.ERROR)
                 break
 
             except Exception as e:

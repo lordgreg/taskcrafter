@@ -1,38 +1,45 @@
 jobs:
-  - id: hello_interval
-    name: Hello World every 10 seconds
-    plugin: echo
-    schedule: "* * * * *"
+  - id: delayed_job_with_timeout
+    name: Delayed Job with Timeout
+    plugin: delayed_echo
     params:
-      message: "Hello, World every 10 seconds!"
-  - id: hello
-    name: Hello World Job
-    plugin: echo
-    params:
-      message: "Hello, World!"
-    enabled: false
-  - id: deploy
-    name: Deploy Job
-    plugin: echo
-    params:
-      message: "Deploying the project..."
-    depends_on:
-      - build
-      - test
-  - id: test
-    name: Test Job
-    plugin: echo
-    params:
-      message: "Running tests..."
-    depends_on:
-      - build
-  - id: build
-    name: Build Job
-    plugin: exception
-    max_retries:
-      count: 3
-      interval: 90
-    params:
-      message: "Building the project..."
-    on_success:
-      - hello
+      delay: 30
+      message: "This job will timeout after 10 seconds."
+    timeout: 10
+#   - id: hello_interval
+#     name: Hello World every 10 seconds
+#     plugin: echo
+#     schedule: "* * * * *"
+#     params:
+#       message: "Hello, World every 10 seconds!"
+#   - id: hello
+#     name: Hello World Job
+#     plugin: echo
+#     params:
+#       message: "Hello, World!"
+#     enabled: false
+#   - id: deploy
+#     name: Deploy Job
+#     plugin: echo
+#     params:
+#       message: "Deploying the project..."
+#     depends_on:
+#       - build
+#       - test
+#   - id: test
+#     name: Test Job
+#     plugin: echo
+#     params:
+#       message: "Running tests..."
+#     depends_on:
+#       - build
+#   - id: build
+#     name: Build Job
+#     plugin: exception
+#     max_retries:
+#       count: 3
+#       interval: 90
+#     params:
+#       message: "Building the project..."
+#     on_success:
+#       - hello
