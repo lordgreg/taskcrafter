@@ -1,14 +1,14 @@
 jobs:
-  # - id: execute_binary
-  #   name: Execute Binary
-  #   plugin: binary
-  #   enabled: true
-  #   params:
-  #     command: echo
-  #     args:
-  #       - "Hello from binary plugin."
-  #     env:
-  #       MY_ENV_VAR: "BATMAN(%JOB_ID%)!"
+  - id: execute_binary
+    name: Execute Binary
+    plugin: binary
+    enabled: true
+    params:
+      command: echo
+      args:
+        - "Hello from binary plugin."
+      env:
+        MY_ENV_VAR: "BATMAN(%JOB_ID%)!"
   # - id: delayed_job_with_timeout
   #   name: Delayed Job with Timeout
   #   plugin: delayed_echo
