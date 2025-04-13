@@ -1,0 +1,6 @@
+jobs:
+  - id: hello_world
+    name: Hello World Job
+    plugin: echo
+    params:
+      message: "Hello from TaskCrafter!"
