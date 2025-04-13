@@ -37,8 +37,7 @@ def list(file=JOBS_FILE):
 def run(job, file=JOBS_FILE):
     """Run a job from YAML file."""
 
-    # TODO: validate the yaml file
-    # util.yaml_validate("jobs", f)
+    validate(file)
 
     init_plugins()
     data = load_jobs(file)

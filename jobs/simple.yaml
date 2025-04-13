@@ -1,0 +1,6 @@
+jobs:
+  - id: just_simple
+    name: Hi
+    plugin: echo
+    params:
+      message: "Hi, this is just simple."

@@ -7,7 +7,6 @@ registry = {}
 
 class PluginEntry:
     def __init__(self, instance):
-        print(f"Registering plugin {instance.name}...")
         self.name = instance.name
         self.description = instance.description
         self.instance = instance

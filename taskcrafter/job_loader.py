@@ -1,5 +1,6 @@
 import os
 import yaml
+import json
 from jsonschema import validate as jsonschema_validate, ValidationError
 
 
@@ -37,16 +38,16 @@ def load_jobs(name):
 
 
 def validate(name):
-    if not os.path.isfile(name):
-        raise FileNotFoundError(f"Schema schemas/jobs.json not found!")
-
     schema_filename = "schemas/jobs.json"
     with open(schema_filename, "r") as f:
         schema = f.read()
+        schema = json.loads(schema)
 
     jobs_content = load_job_file(name)
+    jobs_yaml = yaml.safe_load(jobs_content)
 
     try:
-        jsonschema_validate(jobs_content, schema)
+        jsonschema_validate(jobs_yaml, schema)
+        # jsonschema_validate
     except ValidationError as e:
         raise ValueError(f"Validation error: {e.message}")
