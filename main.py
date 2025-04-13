@@ -20,8 +20,9 @@ def help():
 
 
 @cli.command()
-@click.option('--file', default=JOBS_FILE,
-              help=f'Name of the jobs file (default: {JOBS_FILE}).')
+@click.option(
+    "--file", default=JOBS_FILE, help=f"Name of the jobs file (default: {JOBS_FILE})."
+)
 def list(file=JOBS_FILE):
     """List all jobs from YAML file."""
     app_logger.info(f"Listing all jobs from {file}...")
@@ -34,8 +35,8 @@ def list(file=JOBS_FILE):
 
 
 @cli.command()
-@click.option('--job', help='Name of the job.')
-@click.option('--file', default=JOBS_FILE, help='Name of the file.')
+@click.option("--job", help="Name of the job.")
+@click.option("--file", default=JOBS_FILE, help="Name of the file.")
 def run(job, file=JOBS_FILE):
     """Run a job from YAML file."""
 

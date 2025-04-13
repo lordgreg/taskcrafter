@@ -1,12 +1,37 @@
 import os
 import time
+from datetime import datetime
 from enum import Enum
-from concurrent.futures import ThreadPoolExecutor
 import yaml
 import json
 from jsonschema import validate as jsonschema_validate, ValidationError
 from taskcrafter.plugin_loader import plugin_execute
 from taskcrafter.logger import app_logger
+from taskcrafter.util.templater import apply_templates_to_params
+
+
+def context(job) -> dict:
+    """Create a context dictionary for templating."""
+
+    # create dictionary with params where key is job_params_{param_name}
+    # and value is the param value
+    job_params = {f"job_params_{k}": v for k, v in job.params.items()}
+
+    return {
+        "job_id": job.id,
+        "job_name": job.name,
+        "job_plugin": job.plugin,
+        "job_schedule": job.schedule,
+        "job_on_success": job.on_success,
+        "job_on_failure": job.on_failure,
+        "job_on_finish": job.on_finish,
+        "job_depends_on": job.depends_on,
+        "job_enabled": job.enabled,
+        "job_max_retries": job.max_retries,
+        "job_timeout": job.timeout,
+        "current_time": datetime.now().isoformat(),
+    } | job_params
+
 
 class JobStatus(Enum):
     SUCCESS = "success"
@@ -14,15 +39,29 @@ class JobStatus(Enum):
     PENDING = "pending"
     ERROR = "error"
 
+
 class JobRetry:
     def __init__(self, count: int = 0, interval: int = 0):
         self.count = count
         self.interval = interval
 
+
 class Job:
-    def __init__(self, id, name, plugin, params=None, schedule=None,
-                 on_success=None, on_failure=None, on_finish=None, depends_on=None,
-                 enabled=True, max_retries=None, timeout=None):
+    def __init__(
+        self,
+        id,
+        name,
+        plugin,
+        params=None,
+        schedule=None,
+        on_success=None,
+        on_failure=None,
+        on_finish=None,
+        depends_on=None,
+        enabled=True,
+        max_retries=None,
+        timeout=None,
+    ):
         self.id = id
         self.name = name
         self.plugin = plugin
@@ -33,18 +72,16 @@ class Job:
         self.on_finish = on_finish or []
         self.depends_on = depends_on or []
         self.enabled = enabled
-        
         if max_retries is None:
             self.max_retries = JobRetry()
         else:
             self.max_retries: JobRetry = JobRetry(**max_retries)
         self.timeout = timeout
-        
         self.status = None
-        
+
     def set_status(self, status: JobStatus):
         self.status = status
-    
+
     def get_status(self):
         return self.status
 
@@ -64,7 +101,6 @@ class JobManager:
 
         return job
 
-
     def load_job_file(name: str):
         """Load a file."""
         if not os.path.isfile(name):
@@ -73,7 +109,6 @@ class JobManager:
         with open(name, "r") as f:
             content = f.read()
         return content
-
 
     def load_jobs(self, name: str):
         content = JobManager.load_job_file(name)
@@ -110,58 +145,68 @@ class JobManager:
             app_logger.error(f"Validation error: {e.message}")
             raise ValueError(f"Validation error: {e.message}")
 
-
     def run_job(self, job: Job, execution_stack: list[str] = None, force: bool = False):
         """Run a job."""
         execution_stack = execution_stack or []
-        
+
         if not job.enabled and not force:
             app_logger.warning(f"Job {job.id} is disabled. Skipping...")
             return
-        
+
         if job.id in execution_stack:
             app_logger.error(
-                f"Job {job.id} is already in the execution stack. Skipping...")
+                f"Job {job.id} is already in the execution stack. Skipping..."
+            )
             return
-        
+
         execution_stack.append(job.id)
-        
+
         is_pending = False
         for dep in job.depends_on:
             dep_status = self.job_get_by_id(dep).get_status()
             if dep_status != JobStatus.SUCCESS:
                 job.set_status(JobStatus.PENDING)
-                app_logger.warning(
-                    f"Job {job.id} is waiting for job {dep} to finish.")
+                app_logger.warning(f"Job {job.id} is waiting for job {dep} to finish.")
                 is_pending = True
-        
+
         if is_pending:
             return
 
-        app_logger.info(f"Running job: {job.id} ({' -> '.join(execution_stack)}) with plugin {job.plugin}...")
+        app_logger.info(
+            f"Running job: {job.id} ({' -> '.join(execution_stack)}) with plugin {job.plugin}..."
+        )
         attempt = 0
 
         while attempt <= (job.max_retries.count):
             if attempt > 0:
                 app_logger.info(
-                    f"Retrying job {job.id} ({attempt}/{job.max_retries.count}) in {job.max_retries.interval} seconds...")
+                    f"Retrying job {job.id} ({attempt}/{job.max_retries.count}) in {job.max_retries.interval} seconds..."
+                )
                 time.sleep(job.max_retries.interval)
             try:
-                with ThreadPoolExecutor() as executor:
-                    future = executor.submit(plugin_execute, job.plugin, job.params)
-                    if job.timeout:
-                        future.result(timeout=job.timeout)
-                    else:
-                        future.result()
-                        
-                # plugin_execute(job.plugin, job.params)
+                resolved_params = apply_templates_to_params(job.params, context(job))
+                from multiprocessing import Process, Queue
+
+                process = Process(
+                    target=plugin_execute,
+                    args=(job.plugin, resolved_params),
+                )
+                process.start()
+                if job.timeout and process.is_alive():
+                    process.join(timeout=job.timeout)
+                    process.terminate()
+                    raise TimeoutError()
+                else:
+                    process.join()
+
+                process.terminate()
+
                 app_logger.info(f"Job {job.id} executed successfully.")
                 for on_success in job.on_success:
-                    app_logger.info(
-                        f"Running on_success jobs: {on_success}...")
+                    app_logger.info(f"Running on_success jobs: {on_success}...")
                     success_job = self.job_get_by_id(on_success)
                     self.run_job(success_job, execution_stack.copy(), force=True)
-                
+
                 job.set_status(JobStatus.SUCCESS)
                 break
             except TimeoutError as e:
@@ -174,28 +219,32 @@ class JobManager:
                 attempt += 1
                 if attempt >= job.max_retries.count:
                     for on_failure in job.on_failure:
-                        app_logger.info(
-                            f"Running on_failure jobs: {on_failure}...")
+                        app_logger.info(f"Running on_failure jobs: {on_failure}...")
                         failure_job = self.job_get_by_id(on_failure)
                         self.run_job(failure_job, execution_stack.copy(), force=True)
-                    
+
                     job.set_status(JobStatus.ERROR)
 
-
         # execute dependent jobs
-        dependant_jobs = [j for j in self.jobs if job.id in j.depends_on and j.get_status() == JobStatus.PENDING and job.get_status() == JobStatus.SUCCESS]
+        dependant_jobs = [
+            j
+            for j in self.jobs
+            if job.id in j.depends_on
+            and j.get_status() == JobStatus.PENDING
+            and job.get_status() == JobStatus.SUCCESS
+        ]
         for dep_job in dependant_jobs:
             if not dep_job.enabled:
                 app_logger.warning(
-                    f"Dependency {dep_job.id} for job {job.id} is disabled and it won't be executed.")
+                    f"Dependency {dep_job.id} for job {job.id} is disabled and it won't be executed."
+                )
                 continue
             app_logger.info(
-                f"Running dependant job: {dep_job.id} with status {dep_job.get_status()}...")
+                f"Running dependant job: {dep_job.id} with status {dep_job.get_status()}..."
+            )
             self.run_job(dep_job, execution_stack.copy())
-        
+
         for on_finish in job.on_finish:
-            app_logger.info(
-                f"Running on_finish jobs: {on_finish}...")
+            app_logger.info(f"Running on_finish jobs: {on_finish}...")
             finish_job = self.job_get_by_id(on_finish)
             self.run_job(finish_job, execution_stack.copy())
-

@@ -16,10 +16,8 @@ class PluginEntry:
         if hasattr(self.instance, "run"):
             return self.instance.run(params)
         else:
-            app_logger.error(
-                    f"Plugin {self.name} does not have a run function.")
-            raise AttributeError(
-                    f"Plugin {self.name} does not have a run function.")
+            app_logger.error(f"Plugin {self.name} does not have a run function.")
+            raise AttributeError(f"Plugin {self.name} does not have a run function.")
 
 
 def init_plugins():
