@@ -1,31 +1,45 @@
-from rich.console import Console
 from rich.tree import Tree
+from rich.console import Console
+from taskcrafter.models.job import Job
+
+console = Console()
 
 
-def rich_preview(jobs):
-    console = Console()
-    tree = Tree("TaskCrafter Jobs")
+def rich_preview(jobs: list[Job]):
+    tree = Tree("[bold green]TaskCrafter Job Preview")
 
     for job in jobs:
-        if job.enabled:
-            node = tree.add(f"[bold green]{job.id}[/bold green]: {job.name}")
-        else:
-            node = tree.add(
-                f"[yellow]{job.id}[/yellow]: {job.name} [dim](disabled)[/dim]"
-            )
-        for dep in job.depends_on or []:
-            node.add(f"[dim]depends_on: {dep}[/dim]")
-        for succ in job.on_success or []:
-            node.add(f"[green]on_success: {succ}[/green]")
-        for fail in job.on_failure or []:
-            node.add(f"[red]on_failure: {fail}[/red]")
-        for finish in job.on_finish or []:
-            node.add(f"[blue]on_finish: {finish}[/blue]")
+        label = f"[dim][s]{job.id}" if not job.enabled else f"[bold]{job.id}"
+        job_branch = tree.add(f"{label} — {job.name}")
+
+        if job.plugin:
+            job_branch.add(f"Plugin: [cyan]{job.plugin}[/]")
+        elif job.container:
+            container_info = f"[magenta]{job.container.image}[/]"
+            job_branch.add(f"Container: {container_info}")
+
+        if job.schedule:
+            job_branch.add(f"Schedule: [blue]{job.schedule}[/]")
+
         if job.timeout:
-            node.add(f"[yellow]timeout: {job.timeout} seconds[/yellow]")
-        if job.max_retries.count > 0:
-            node.add(
-                f"[orange]max_retries: {job.max_retries.count} every {job.max_retries.interval} seconds[/orange]"
+            job_branch.add(f"Timeout: {job.timeout}s")
+
+        if job.max_retries and (
+            job.max_retries.count > 0 or job.max_retries.interval > 0
+        ):
+            job_branch.add(
+                f"Retries: [bold]{job.max_retries.count}[/] every "
+                f"[bold]{job.max_retries.interval}s[/]"
             )
+
+        if job.depends_on:
+            job_branch.add("Depends on: " + ", ".join(job.depends_on))
+
+        if job.on_success:
+            job_branch.add("On Success: " + ", ".join(job.on_success))
+        if job.on_failure:
+            job_branch.add("On Failure: " + ", ".join(job.on_failure))
+        if job.on_finish:
+            job_branch.add("On Finish: " + ", ".join(job.on_finish))
 
     console.print(tree)

@@ -31,18 +31,6 @@ def help():
 
 
 @cli.command()
-def list():
-    """List all jobs from YAML file."""
-    app_logger.info(f"Listing all jobs from {app_config.jobs_file}...")
-
-    jobManager = JobManager(app_config.jobs_file)
-    jobManager.validate()
-
-    for job in jobManager.jobs:
-        app_logger.info(f"  {job.id} - {job.name}")
-
-
-@cli.command()
 @click.option("--job", help="Name of the job.")
 def run(job):
     """Run a job from YAML file."""
@@ -80,8 +68,8 @@ def plugins():
 
 
 @cli.command()
-def preview():
-    """Preview the job dependency graph."""
+def list():
+    """List all jobs from YAML file."""
     jobs = JobManager(app_config.jobs_file).jobs
     rich_preview(jobs)
 
