@@ -1,5 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass, field
+from typing import Union
 
 
 class JobStatus(Enum):
@@ -42,13 +43,13 @@ class Job:
     on_finish: list[str] = field(default_factory=list)
     depends_on: list[str] = field(default_factory=list)
     enabled: bool = True
-    max_retries: JobRetry = field(default_factory=JobRetry)
+    max_retries: Union[JobRetry | None | dict] = field(default_factory=JobRetry)
     timeout: int = None
     status: JobStatus = None
     container: JobContainer = None
 
     def __post_init__(self):
-        if self.max_retries is dict:
+        if isinstance(self.max_retries, dict):
             self.max_retries = JobRetry(**self.max_retries)
         if self.container is not None:
             self.container = JobContainer(**self.container)
