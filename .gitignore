@@ -3,3 +3,6 @@ build
 dist
 *.spec
 .coverage
+.mypy_cache
+.pytest_cache
+htmlcov
