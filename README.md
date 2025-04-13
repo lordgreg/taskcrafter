@@ -1,19 +1,21 @@
+# README.md - TaskCrafter
+
 # 🛠️ TaskCrafter
 
-TaskCrafter is a developer-first, CLI-based task scheduler that lets you define jobs in YAML, chain them with flexible logic, and extend them with Python plugins or shell scripts. Ideal for automating developer workflows without relying on heavy CI/CD systems.
+TaskCrafter is a developer-first, CLI-based task scheduler that lets you define jobs in YAML, chain them with flexible logic, and extend them with Python plugins, shell scripts, or containers. Ideal for automating workflows without bloated CI/CD systems.
 
 ---
 
 ### 🚀 Why TaskCrafter?
 
-- ✅ Write jobs in YAML (not spaghetti shell scripts)
-- 🔁 Chain tasks with conditions: `on_success`, `on_failure`, `depends_on`
-- 🧩 Extend with Python plugins, Docker containers, or local binaries
-- 🧠 Templating support in parameters
-- 📦 Git-friendly (keep jobs versioned alongside code)
-- 🪄 CLI-first, DevOps-inspired design
-- 🔐 Job timeout, retry logic, and scheduler support
-- 📈 Visualize job flow directly in the terminal
+- ✅ Declarative YAML job definitions
+- 🔁 Chain jobs with `on_success`, `on_failure`, `depends_on`, etc.
+- 🧩 Python plugin architecture, container execution, and binary support
+- 📥 Inputs/Outputs between jobs with cache-based file passing
+- 🧠 Templating and variable resolution from env, files, or results
+- 📦 Git-friendly and lightweight
+- 🕹️ CLI-first, built for developers and DevOps
+- 🧯 Timeout, retries, cron scheduling, and log file support
 
 ---
 
@@ -22,8 +24,10 @@ TaskCrafter is a developer-first, CLI-based task scheduler that lets you define 
 ```bash
 git clone https://github.com/your-org/taskcrafter
 cd taskcrafter
-make build  # optional, to create a standalone binary
+make build  # optional, for creating a standalone binary
 ```
+
+---
 
 ## 📝 Example jobs.yaml
 
@@ -40,31 +44,34 @@ jobs:
       count: 2
       interval: 5
 
-  - id: dependent_job
+  - id: follow_up
     name: Follow-up
     plugin: hello
     params:
-      message: "Executed after hello."
+      message: "Output was: {{ inputs.hello.result }}"
     depends_on:
       - hello
+    input:
+      result: "result:hello"
 ```
 
 ---
 
 ## 🧩 Plugin System
 
-Each plugin is a Python class with a required `run(params)` method:
-
 ```python
 class Plugin:
     name = "hello"
     description = "Simple Hello plugin"
+    long_description = "A simple plugin to print greetings"
 
-    def run(self, params):
+    def run(self, params, inputs=None):
         print(params.get("message", "HELLO WORLD"))
 ```
 
-Plugins are automatically registered via `plugin_registry`.
+- All plugins are auto-registered
+- You can define metadata, description, and structured output
+- Plugins can access job inputs via `inputs` param
 
 ---
 
@@ -72,51 +79,51 @@ Plugins are automatically registered via `plugin_registry`.
 
 ```bash
 taskcrafter list                 # List all jobs
-taskcrafter run <job_id>         # Run a job by ID
-taskcrafter validate             # Validate the job file
-taskcrafter preview              # Show job flow as a graph
-taskcrafter explain <job_id>     # Show details of a specific job
+taskcrafter run <job_id>        # Run a specific job
+taskcrafter run --all           # Run the full DAG
+taskcrafter preview             # Visualize job flow
 ```
 
-Optional flags:
+Global flags:
 
-- `--file <path>`: Use a different jobs YAML file
-- `--force`: Force job execution even if disabled
-
----
-
-## 🧠 Advanced Features
-
-- `on_success`, `on_failure`: Automatically trigger chained jobs
-- `depends_on`: Ensure jobs only run after dependencies
-- `max_retries`: Retry logic with intervals
-- `timeout`: Cancel jobs that run too long
-- `schedule`: Support for cron-like background jobs
-- `container`: Run jobs inside Docker containers
-- `binary`: Execute native binaries
-
----
-
-## 📈 Visual Preview
-
-```bash
-taskcrafter preview
-```
-
-Displays a tree of job dependencies using `rich` in your terminal.
+- `--file <path>`: Use a different YAML job file
 
 ---
 
 ## 🧪 Development
 
 - Written in Python 3.10+
-- Modular plugin system
-- Well-structured for contribution
+- Modular architecture
+- Plugin-based
+- Easy to test and extend
+
+Using make:
 
 ```bash
-make test       # Run tests
-make lint       # Run linter
+Targets:
+  install    Install dependencies
+  lint       Run flake8
+  test       Run tests with pytest
+  coverage   Run tests and show coverage
+  build      Build standalone binary with PyInstaller
+  all        Run format, lint and test
+  clean      Remove temporary files and build artifacts
+  docker     Build and run container (use CONTAINER_TOOL to specify podman or docker)
 ```
+
+---
+
+## ✅ TODO Roadmap
+
+- [ ] `depends_on`, `on_finish` etc. should support job params, not just IDs
+- [ ] Add `--log-file` and `--log-level` CLI flag
+- [ ] Automatically exit if no scheduled jobs match
+- [ ] Add summary table report after run
+- [ ] Add `before_all`, `after_all`, `on_error`, `on_skip` global hooks
+- [ ] New plugin type: `terminate`
+- [ ] Support for job `input` and `output` resolution
+- [ ] Docs: Document plugin dev best practices
+- [ ] More unit tests, get to 100% code coverage 😊
 
 ---
 
