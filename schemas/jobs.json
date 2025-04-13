@@ -90,7 +90,8 @@
               }
             },
             "required": ["image", "command"]
-          }
+          },
+          "input": { "type": "object" }
         },
         "oneOf": [
           {

@@ -20,4 +20,7 @@ class Plugin:
     description = "Echoes the message passed to it. 🐹"
 
     def run(self, params: dict):
-        print(params.get("message", "Hello World!"))
+        message = params.get("message", "Hello World!")
+        print(message)
+
+        return message

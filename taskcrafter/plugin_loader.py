@@ -18,7 +18,6 @@ def init_plugins():
                 if hasattr(module, "Plugin"):
                     docgen = None
                     if hasattr(module, "__doc__") and module.__doc__ is not None:
-                        print(f"__doc__ found for plugin {module.__name__}")
                         docgen = module.__doc__.strip()
 
                     instance = module.Plugin()
@@ -43,8 +42,8 @@ def plugin_execute(name: str, params: dict, queue: Queue) -> PluginEntry:
     plugin = registry[name]
 
     try:
-        plugin.run(params)
-        queue.put(plugin)
+        res = plugin.run(params)
+        queue.put(res)
         return plugin
     except Exception as e:
         queue.put(e)

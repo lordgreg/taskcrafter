@@ -1,0 +1,24 @@
+jobs:
+
+  - id: hello
+    name: Hello World Job
+    plugin: echo
+    params:
+      message: "Hello, World BATMAN!!"
+
+  - id: hello-2
+    name: Hello World Job 2
+    plugin: echo
+    input:
+      message: "result:hello"
+      message: "env:SHELL"
+    depends_on:
+      - hello
+
+  - id: hello-3
+    name: Hello World Job 3
+    plugin: echo
+    input:
+      message: "result:hello"
+    depends_on:
+      - hello-2

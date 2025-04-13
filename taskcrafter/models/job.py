@@ -63,7 +63,7 @@ class Job:
     id: str
     name: str
     plugin: str = None
-    params: dict[str, str] = None
+    params: dict[str, str] = field(default_factory=dict)
     schedule: str = None
     on_success: list[str] = field(default_factory=list)
     on_failure: list[str] = field(default_factory=list)
@@ -74,6 +74,7 @@ class Job:
     timeout: int = None
     container: JobContainer = None
     result: JobResult = field(default_factory=JobResult)
+    input: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         if isinstance(self.retries, dict):

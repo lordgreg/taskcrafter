@@ -53,12 +53,12 @@
             "args": "plugins list"
         },
         {
-            "name": "plugin info echo",
+            "name": "plugin info delayed_echo",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": "plugins info echo"
+            "args": "plugins info delayed_echo"
         },
     ]
 }

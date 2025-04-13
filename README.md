@@ -114,6 +114,7 @@ Targets:
 ## ✅ TODO Roadmap
 
 - [x] `depends_on`, `on_finish` etc. should support job params, not just IDs
+
       I am having 2nd thoughts on this, mainly because we can end in the loop of
       job under the job under the job under the job..
 
@@ -123,7 +124,10 @@ Targets:
 - [✅] Add summary table report after run
 - [✅] `plugins info <name>` added. Will try to fetch docgen from the plugin file too.
 - [✅] Add `before_all`, `after_all`, `on_error`, `on_skip` global hooks
-- [ ] Support for job `input` and `output` resolution
+- [✅] Support for job `input` and `output` resolution
+
+      The output currently isn't required, since each plugin returns an item. This will always be saved in the .cache directory.
+
 - [ ] New plugin type: `terminate`
 - [ ] Docs: Document plugin dev best practices
 - [ ] Add `--log-file` and `--log-level` CLI flag

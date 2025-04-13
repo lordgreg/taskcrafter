@@ -7,6 +7,7 @@ from taskcrafter.container import run_job_in_docker
 from taskcrafter.util.templater import apply_templates_to_params
 from taskcrafter.models.job import Job, JobStatus
 from taskcrafter.util.file import validate_schema
+from taskcrafter.input_output_resolver import CacheManager, InputResolver
 
 
 def context(job) -> dict:
@@ -35,6 +36,8 @@ def context(job) -> dict:
 class JobManager:
     def __init__(self, job_file_content: str):
         self.jobs_yaml = None
+        self.cache = CacheManager()
+        self.resolver = InputResolver(self.cache)
         self.jobs: list[Job] = self.load_jobs(job_file_content)
 
     def get_in_progress(self) -> int:
@@ -101,7 +104,7 @@ class JobManager:
 
         is_pending = False
         for dep in job.depends_on:
-            dep_status = self.job_get_by_id(dep).get_status()
+            dep_status = self.job_get_by_id(dep).result.get_status()
             if dep_status != JobStatus.SUCCESS:
                 job.result.set_status(JobStatus.PENDING)
                 app_logger.warning(f"Job {job.id} is waiting for job {dep} to finish.")
@@ -109,6 +112,18 @@ class JobManager:
 
         if is_pending:
             return
+
+        # get inputs on runtime
+        if job.input:
+            for key, value in job.input.items():
+                resolved_value = self.resolver.resolve(value)
+                if resolved_value is None:
+                    app_logger.warning(
+                        f"Input {value} for job {job.id} is not valid. Skipping..."
+                    )
+                    continue
+
+                job.params[key] = self.resolver.resolve(value)
 
         app_logger.info(f"Running job: {job.id} ({' -> '.join(execution_stack)})...")
         attempt = 0
@@ -137,17 +152,20 @@ class JobManager:
                     process.start()
                     if job.timeout and process.is_alive():
                         process.join(timeout=job.timeout)
+
                         process.terminate()
                         raise TimeoutError()
                     else:
                         process.join()
-                        queue_result = queue.get()
+                        queue_result: str | dict = queue.get()
+
                         if isinstance(queue_result, Exception):
                             raise queue_result
 
                     process.terminate()
 
                 app_logger.info(f"Job {job.id} executed successfully.")
+                self.cache.write_output(job.id, queue_result)
                 for on_success in job.on_success:
                     app_logger.info(f"Running on_success jobs: {on_success}...")
                     success_job = self.job_get_by_id(on_success)
@@ -161,8 +179,11 @@ class JobManager:
                 break
 
             except Exception as e:
-                app_logger.error(f"Job {job.id} executed with exception: {e}")
+                app_logger.error(
+                    f"Job {job.id} executed with exception ({type(e)}): {e}"
+                )
                 job.result.retries = attempt
+                self.cache.write_output(job.id, str(e), attempt, is_error=True)
                 attempt += 1
                 if attempt >= job.retries.count:
                     for on_failure in job.on_failure:
@@ -177,7 +198,7 @@ class JobManager:
             for j in self.jobs
             if (
                 job.id in j.depends_on
-                and j.get_status() == JobStatus.PENDING
+                and j.result.get_status() == JobStatus.PENDING
                 and job.result.get_status() == JobStatus.SUCCESS
             )
         ]

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from taskcrafter.logger import app_logger
+import inspect
 
 
 @dataclass
@@ -12,18 +13,11 @@ class PluginEntry:
     def __post_init__(self):
         self.name = self.instance.name
         self.description = self.instance.description
-
-        # if module itself doesnt have a docgen, check if Plugin instance has it,
-        # otherwise check if the run() has it.
-        if not self.docgen or self.docgen == "":
-            if hasattr(self.instance, "__docgen__"):
-                self.docgen = self.instance.__docgen__.strip()
-            elif hasattr(self.instance, "run") and hasattr(
-                self.instance.run, "__docgen__"
-            ):
-                self.docgen = self.instance.run.__docgen__.strip()
-
-    # def
+        self.docgen = (
+            self.docgen
+            or inspect.getdoc(self.instance)
+            or inspect.getdoc(self.instance.run)
+        )
 
     def run(self, params):
         if hasattr(self.instance, "run"):
