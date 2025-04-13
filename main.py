@@ -1,6 +1,8 @@
 import click
-from taskcrafter.job_loader import load_jobs, job_get, validate
-from taskcrafter.plugin_loader import plugin_list, plugin_execute, init_plugins
+from taskcrafter.job_loader import load_jobs, job_get, validate, run_job
+from taskcrafter.plugin_loader import plugin_list, init_plugins
+from taskcrafter.scheduler import schedule_job, start_scheduler
+from taskcrafter.logger import app_logger
 
 JOBS_FILE = "jobs/my_jobs.yaml"
 
@@ -19,47 +21,63 @@ def help():
 
 @cli.command()
 @click.option('--file', default=JOBS_FILE,
-              help='Name of the jobs file (default: {JOBS_FILE}).')
+              help=f'Name of the jobs file (default: {JOBS_FILE}).')
 def list(file=JOBS_FILE):
     """List all jobs from YAML file."""
-    click.echo(f"Listing all jobs from {file}...")
+    app_logger.info(f"Listing all jobs from {file}...")
     validate(file)
 
-    data = load_jobs(file)
+    jobs = load_jobs(file)
 
-    for job in data.get("jobs", []):
-        click.echo(f"  {job['id']} - {job.get('name', 'No name')}")
+    for job in jobs:
+        app_logger.info(f"  {job.id} - {job.name}")
 
 
 @cli.command()
+@click.option('--job', help='Name of the job.')
 @click.option('--file', default=JOBS_FILE, help='Name of the file.')
-@click.argument('job', type=str)
 def run(job, file=JOBS_FILE):
     """Run a job from YAML file."""
 
     validate(file)
 
     init_plugins()
-    data = load_jobs(file)
-    job = job_get(job, data)
+    jobs = load_jobs(file)
+    has_scheduled_jobs = False
 
-    click.echo(f"Running job: {job['id']} with plugin {job['plugin']}...")
+    if job:
+        job = job_get(job, jobs)
+        jobs = [job]
 
-    plugin_execute(job["plugin"], job.get("params", {}))
+    # filter jobs, if .enabled=True
+    jobs = [j for j in jobs if j.enabled is True]
+
+    for job in jobs:
+        if job.schedule:
+            has_scheduled_jobs = True
+            schedule_job(job)
+        else:
+            app_logger.info(
+                    f"Running job: {job.id} with plugin {job.plugin}...")
+            run_job(job)
+
+    if has_scheduled_jobs:
+        start_scheduler()
 
 
 @cli.command()
 def plugins():
     """List all available plugins."""
-    click.echo("Listing all available plugins...")
+    app_logger.info("Listing all available plugins...")
     init_plugins()
     plugins = plugin_list()
 
     if not plugins:
         click.echo("No plugins found.")
+        app_logger.warning("No plugins found.")
         return
     for name, description in plugins:
-        click.echo(f"  {name} - {description}")
+        app_logger.info(f"Plugin {name} - {description}")
 
 
 if __name__ == "__main__":

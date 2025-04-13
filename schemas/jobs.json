@@ -9,9 +9,36 @@
           "id": { "type": "string" },
           "name": { "type": "string" },
           "plugin": { "type": "string" },
-          "params": { "type": "object" }
+          "params": { "type": "object" },
+          "schedule": { "type": "string" },
+          "on_success": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "on_failure": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Timeout in seconds"
+          }
         },
-        "required": ["id", "plugin"],
+        "required": ["id", "name", "plugin"],
         "additionalProperties": true
       }
     }

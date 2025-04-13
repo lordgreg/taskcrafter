@@ -4,3 +4,26 @@ jobs:
     plugin: echo
     params:
       message: "Hello from TaskCrafter!"
+    on_success:
+    - hello_world
+  - id: run_every_minute_job
+    name: Repeated Minute Job
+    enabled: false
+    schedule: "* * * * *"
+    params:
+      message: "I am just repeating every minute!"
+    plugin: echo
+  - id: run_every_5_minutes_job
+    name: Repeated 5 Minute Job
+    enabled: false
+    schedule: "5 * * * *"
+    params:
+      message: "I am just repeating every 5 minutes!"
+    plugin: echo
+  - id: i_am_disabled
+    name: Not gonna happen!
+    schedule: "* * * * *"
+    enabled: false
+    params:
+      message: "I should NOT execute!"
+    plugin: echo

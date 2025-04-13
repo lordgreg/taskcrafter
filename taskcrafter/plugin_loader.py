@@ -1,6 +1,7 @@
 import os
 import pathlib
 import importlib.util
+from taskcrafter.logger import app_logger
 
 registry = {}
 
@@ -15,6 +16,8 @@ class PluginEntry:
         if hasattr(self.instance, "run"):
             return self.instance.run(params)
         else:
+            app_logger.error(
+                    f"Plugin {self.name} does not have a run function.")
             raise AttributeError(
                     f"Plugin {self.name} does not have a run function.")
 
@@ -30,7 +33,7 @@ def init_plugins():
                     instance = module.Plugin()
                     registry[instance.name] = PluginEntry(instance)
             except Exception as e:
-                print(f"⚠️  Failed to load plugin '{file}': {e}")
+                app_logger.warning(f"⚠️  Failed to load plugin '{file}': {e}")
 
 
 def plugin_list():
@@ -40,6 +43,10 @@ def plugin_list():
 def plugin_execute(name, params):
     """Execute a plugin."""
     if name not in registry:
+        app_logger.error(f"Plugin {name} not found.")
         raise ValueError(f"Plugin {name} not found.")
     plugin = registry[name]
-    return plugin.run(params)
+    try:
+        return plugin.run(params)
+    except Exception as e:
+        app_logger.error(f"Plugin {name} failed: {e}")
