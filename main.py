@@ -48,16 +48,13 @@ def run(job, file=JOBS_FILE):
         job = jobManager.job_get_by_id(job, jobs)
         jobManager.jobs = [job]
 
-    # filter jobs, if .enabled=True
-    jobs = [j for j in jobManager.jobs if j.enabled is True]
-
-    has_scheduled_jobs = len([j for j in jobs if j.schedule]) > 0
+    has_scheduled_jobs = len([j for j in jobManager.jobs if j.schedule]) > 0
 
     if has_scheduled_jobs:
         schedulerManager = SchedulerManager(jobManager)
 
 
-    for job in jobs:
+    for job in jobManager.jobs:
         if job.schedule:
             schedulerManager.schedule_job(job)
         else:

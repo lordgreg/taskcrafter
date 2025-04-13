@@ -100,11 +100,14 @@ class JobManager:
             raise ValueError(f"Validation error: {e.message}")
 
 
-    def run_job(self, job: Job, execution_stack: list[str] = None):
+    def run_job(self, job: Job, execution_stack: list[str] = None, force: bool = False):
         """Run a job."""
         execution_stack = execution_stack or []
         
-
+        if not job.enabled and not force:
+            app_logger.warning(f"Job {job.id} is disabled. Skipping...")
+            return
+        
         if job.id in execution_stack:
             app_logger.error(
                 f"Job {job.id} is already in the execution stack. Skipping...")
@@ -117,7 +120,7 @@ class JobManager:
             dep_status = self.job_get_by_id(dep).get_status()
             if dep_status != JobStatus.SUCCESS:
                 job.set_status(JobStatus.PENDING)
-                app_logger.error(
+                app_logger.warning(
                     f"Job {job.id} is waiting for job {dep} to finish.")
                 is_pending = True
         
@@ -132,7 +135,7 @@ class JobManager:
                 app_logger.info(
                     f"Running on_success jobs: {on_success}...")
                 success_job = self.job_get_by_id(on_success)
-                self.run_job(success_job, execution_stack.copy())
+                self.run_job(success_job, execution_stack.copy(), force=True)
             
             job.set_status(JobStatus.SUCCESS)
 
@@ -142,7 +145,7 @@ class JobManager:
                 app_logger.info(
                     f"Running on_failure jobs: {on_failure}...")
                 failure_job = self.job_get_by_id(on_failure)
-                self.run_job(failure_job, execution_stack.copy())
+                self.run_job(failure_job, execution_stack.copy(), force=True)
             
             job.set_status(JobStatus.ERROR)
 

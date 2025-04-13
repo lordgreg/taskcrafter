@@ -1,4 +1,10 @@
 jobs:
+  - id: hello
+    name: Hello World Job
+    plugin: echo
+    params:
+      message: "Hello, World!"
+    enabled: false
   - id: deploy
     name: Deploy Job
     plugin: echo
@@ -19,3 +25,5 @@ jobs:
     plugin: echo
     params:
       message: "Building the project..."
+    on_success:
+      - hello
