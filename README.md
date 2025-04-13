@@ -124,9 +124,9 @@ Targets:
 - [✅] Automatically exit if no jobs are running
 - [✅] Add summary table report after run
 - [✅] `plugins info <name>` added. Will try to fetch docgen from the plugin file too.
-- [ ] New plugin type: `terminate`
-- [ ] Add `before_all`, `after_all`, `on_error`, `on_skip` global hooks
+- [✅] Add `before_all`, `after_all`, `on_error`, `on_skip` global hooks
 - [ ] Support for job `input` and `output` resolution
+- [ ] New plugin type: `terminate`
 - [ ] Docs: Document plugin dev best practices
 - [ ] Add `--log-file` and `--log-level` CLI flag
 - [ ] More unit tests, get to 100% code coverage 😊

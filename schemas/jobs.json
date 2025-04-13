@@ -102,6 +102,41 @@
         ],
         "additionalProperties": true
       }
+    },
+    "hooks": {
+      "type": "object",
+      "properties": {
+        "before_all": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "after_all": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "before_job": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "after_job": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "on_error": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "required": ["jobs"]

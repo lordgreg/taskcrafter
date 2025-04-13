@@ -1,0 +1,32 @@
+jobs:
+  - id: just_throwing_exceptions
+    name: Exception Thrower 🐧
+    plugin: exception
+    params:
+      message: "Well, this isnt good, right?"
+
+  - id: hello
+    name: Hello World Job
+    plugin: echo
+    params:
+      message: "Hello, World!"
+
+  - id: hello_world_success
+    enabled: false
+    name: Hello world Success Job
+    plugin: desktop-notifier
+    params:
+      message: "We succeeded!"
+
+  - id: hello_world_failure
+    enabled: false
+    name: Hello world Failure Job
+    plugin: desktop-notifier
+    params:
+      message: "We failed!"
+
+hooks:
+  after_all:
+    - hello_world_success
+  on_error:
+    - hello_world_failure

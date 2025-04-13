@@ -1,14 +1,12 @@
-import os
 import time
 from datetime import datetime
 import yaml
-import json
-from jsonschema import validate as jsonschema_validate, ValidationError
 from taskcrafter.plugin_loader import plugin_execute
 from taskcrafter.logger import app_logger
 from taskcrafter.container import run_job_in_docker
 from taskcrafter.util.templater import apply_templates_to_params
 from taskcrafter.models.job import Job, JobStatus
+from taskcrafter.util.file import validate_schema
 
 
 def context(job) -> dict:
@@ -35,9 +33,9 @@ def context(job) -> dict:
 
 
 class JobManager:
-    def __init__(self, job_file: str):
+    def __init__(self, job_file_content: str):
         self.jobs_yaml = None
-        self.jobs: list[Job] = self.load_jobs(job_file)
+        self.jobs: list[Job] = self.load_jobs(job_file_content)
 
     def get_in_progress(self) -> int:
         return len(
@@ -46,6 +44,7 @@ class JobManager:
                 for job in self.jobs
                 if not job.result.get_status() == JobStatus.SUCCESS
                 and not job.result.get_status() == JobStatus.ERROR
+                and job.enabled is not False
             ]
         )
 
@@ -59,25 +58,15 @@ class JobManager:
 
         return job
 
-    def load_job_file(self, name: str) -> str:
-        """Load a file."""
-        if not os.path.isfile(name):
-            app_logger.error(f"File {name} does not exist.")
-            raise FileNotFoundError(f"File {name} does not exist.")
-        with open(name, "r") as f:
-            content = f.read()
-        return content
-
-    def load_jobs(self, name: str):
-        content = self.load_job_file(name)
+    def load_jobs(self, content: str):
 
         jobs = []
 
         # check yaml
         try:
-            self.jobs_yaml = yaml.safe_load(content)
+            self.jobs_yaml = yaml.safe_load(content).get("jobs", [])
             # convert to Job
-            for job in self.jobs_yaml.get("jobs", []):
+            for job in self.jobs_yaml:
                 job_obj = Job(**job)
 
                 jobs.append(job_obj)
@@ -92,16 +81,7 @@ class JobManager:
         return jobs
 
     def validate(self):
-        schema_filename = "schemas/jobs.json"
-        with open(schema_filename, "r") as f:
-            schema = f.read()
-            schema = json.loads(schema)
-
-        try:
-            jsonschema_validate(self.jobs_yaml, schema)
-        except ValidationError as e:
-            app_logger.error(f"Validation error: {e.message}")
-            raise ValueError(f"Validation error: {e.message}")
+        return validate_schema(self.jobs_yaml, schema_key="jobs")
 
     def run_job(self, job: Job, execution_stack: list[str] = [], force: bool = False):
         """Run a job."""
@@ -216,3 +196,13 @@ class JobManager:
             app_logger.info(f"Running on_finish jobs: {on_finish}...")
             finish_job = self.job_get_by_id(on_finish)
             self.run_job(finish_job, execution_stack.copy())
+
+        # giving scheduler feedback
+        if job.result.get_status() == JobStatus.SUCCESS:
+            return job
+        elif job.result.get_status() == JobStatus.ERROR:
+            raise Exception(
+                f"Job {job.id} failed with status {job.result.get_status()}"
+            )
+        else:
+            return

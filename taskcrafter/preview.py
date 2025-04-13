@@ -3,13 +3,14 @@ from rich.table import Table
 from rich.console import Console
 from rich.text import Text
 from taskcrafter.models.job import Job, JobStatus
+from taskcrafter.models.hook import Hook
 from taskcrafter.models.plugin import PluginEntry
 
 console = Console()
 
 
-def rich_preview(jobs: list[Job]):
-    tree = Tree("[bold green]TaskCrafter Job Preview")
+def rich_preview(jobs: list[Job], hooks: list[Hook] = []):
+    tree = Tree("[bold green]Jobs")
 
     for job in jobs:
         label = f"[dim][s]{job.id}" if not job.enabled else f"[bold]{job.id}"
@@ -45,6 +46,17 @@ def rich_preview(jobs: list[Job]):
 
     console.print(tree)
 
+    if len(hooks) > 0:
+        tree = Tree("\n[bold green]Hooks")
+
+        for hook in hooks:
+            hook_branch = tree.add(f"[bold]{hook.type.value}")
+
+            for job in hook.jobs:
+                hook_branch.add(f"{job.id}")
+
+        console.print(tree)
+
 
 def result_table(jobs: list[Job]):
     console = Console()
@@ -63,7 +75,8 @@ def result_table(jobs: list[Job]):
             case JobStatus.SUCCESS:
                 status = Text(job.result.get_status().value, "green")
             case _:
-                status = job.result.get_status().value
+                # status = job.result.get_status().value
+                continue
 
         table.add_row(
             str(job.id),

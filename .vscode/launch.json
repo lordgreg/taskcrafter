@@ -45,12 +45,20 @@
             "args": "run --job execute_binary"
         },
         {
-            "name": "plugins",
+            "name": "plugins list",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": "plugins"
+            "args": "plugins list"
+        },
+        {
+            "name": "plugin info echo",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": "plugins info echo"
         },
     ]
 }

@@ -16,8 +16,6 @@ def init_plugins():
             try:
                 module = importlib.import_module(module_name)
                 if hasattr(module, "Plugin"):
-                    print(f"trying to load plugin {module.__name__}")
-
                     docgen = None
                     if hasattr(module, "__doc__") and module.__doc__ is not None:
                         print(f"__doc__ found for plugin {module.__name__}")

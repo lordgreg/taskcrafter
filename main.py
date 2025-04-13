@@ -1,6 +1,8 @@
 import click
 from taskcrafter.logger import app_logger
+from taskcrafter.util.file import get_file_content
 from taskcrafter.job_loader import JobManager
+from taskcrafter.hook_loader import HookManager
 from taskcrafter.plugin_loader import plugin_list, init_plugins, plugin_lookup
 from taskcrafter.scheduler import SchedulerManager
 from taskcrafter.preview import (
@@ -40,8 +42,13 @@ def run_helper(job_id: str):
     """
     global schedulerManager
 
-    jobManager = JobManager(app_config.jobs_file)
+    file_content = get_file_content(app_config.jobs_file)
+
+    jobManager = JobManager(file_content)
     jobManager.validate()
+
+    hookManager = HookManager(file_content, job_manager=jobManager)
+    hookManager.validate()
 
     init_plugins()
 
@@ -52,7 +59,9 @@ def run_helper(job_id: str):
             app_logger.error(f"Job {job_id} does not exist.")
         jobManager.jobs = [job]
 
-    schedulerManager = SchedulerManager(jobManager)
+    schedulerManager = SchedulerManager(
+        job_manager=jobManager, hook_manager=hookManager
+    )
 
     for job in jobManager.jobs:
         schedulerManager.schedule_job(job)
@@ -77,8 +86,11 @@ def run(job_id: str):
 @cli.command()
 def list():
     """List all jobs from YAML file."""
-    jobs = JobManager(app_config.jobs_file).jobs
-    rich_preview(jobs)
+    file_content = get_file_content(app_config.jobs_file)
+
+    jobs = JobManager(file_content).jobs
+    hooks = HookManager(file_content, job_manager=JobManager(file_content)).hooks
+    rich_preview(jobs, hooks)
 
 
 @click.group()
