@@ -1,12 +1,16 @@
 import time
 from datetime import datetime
-import yaml
+from taskcrafter.exceptions.job import (
+    JobFailedError,
+    JobNotFoundError,
+)
+from taskcrafter.exceptions.plugin import PluginExecutionTimeoutError
 from taskcrafter.plugin_loader import plugin_execute
 from taskcrafter.logger import app_logger
 from taskcrafter.container import run_job_in_docker
 from taskcrafter.util.templater import apply_templates_to_params
 from taskcrafter.models.job import Job, JobStatus
-from taskcrafter.util.file import validate_schema
+from taskcrafter.util.yaml import get_yaml_from_string
 from taskcrafter.input_output_resolver import CacheManager, InputResolver
 
 
@@ -57,7 +61,8 @@ class JobManager:
         job = next((j for j in self.jobs if j.id == job_id), None)
 
         if job is None:
-            raise ValueError(f"Job {job_id} does not exist.")
+            app_logger.error(JobNotFoundError(f"Job {job_id} does not exist."))
+            return
 
         return job
 
@@ -65,26 +70,18 @@ class JobManager:
 
         jobs = []
 
-        # check yaml
-        try:
-            self.jobs_yaml = yaml.safe_load(content).get("jobs", [])
-            # convert to Job
-            for job in self.jobs_yaml:
+        self.jobs_yaml = get_yaml_from_string(content).get("jobs", [])
+
+        for job in self.jobs_yaml:
+            try:
                 job_obj = Job(**job)
+            except TypeError as e:
+                app_logger.error(f"Error loading job {job['id']}: {e}")
+                continue
 
-                jobs.append(job_obj)
-
-        except yaml.YAMLError as e:
-            app_logger.error(f"Error parsing YAML file: {e}")
-            raise ValueError(f"Error parsing YAML file: {e}")
-        if self.jobs_yaml is None:
-            app_logger.error("No data found in the file.")
-            raise ValueError("No data found in the file.")
+            jobs.append(job_obj)
 
         return jobs
-
-    def validate(self):
-        return validate_schema(self.jobs_yaml, schema_key="jobs")
 
     def run_job(self, job: Job, execution_stack: list[str] = [], force: bool = False):
         """Run a job."""
@@ -135,6 +132,7 @@ class JobManager:
                 )
                 time.sleep(job.retries.interval)
             try:
+
                 resolved_params = apply_templates_to_params(job.params, context(job))
 
                 if job.container:
@@ -154,7 +152,7 @@ class JobManager:
                         process.join(timeout=job.timeout)
 
                         process.terminate()
-                        raise TimeoutError()
+                        raise PluginExecutionTimeoutError()
                     else:
                         process.join()
                         queue_result: str | dict = queue.get()
@@ -171,9 +169,15 @@ class JobManager:
                     success_job = self.job_get_by_id(on_success)
                     self.run_job(success_job, execution_stack.copy(), force=True)
 
-                job.result.set_status(JobStatus.SUCCESS)
+                # if scheduler job, then status is RUNNING
+                if job.schedule:
+                    job.result.set_status(JobStatus.RUNNING)
+                    job.result.retries += 1
+                else:
+                    job.result.set_status(JobStatus.SUCCESS)
+
                 break
-            except TimeoutError:
+            except PluginExecutionTimeoutError:
                 app_logger.error(f"Job {job.id} timed out.")
                 job.result.set_status(JobStatus.ERROR)
                 break
@@ -189,6 +193,8 @@ class JobManager:
                     for on_failure in job.on_failure:
                         app_logger.info(f"Running on_failure jobs: {on_failure}...")
                         failure_job = self.job_get_by_id(on_failure)
+                        # if on_failure job is calling desktop-notify, the code below yields an error
+                        # TODO: fix this
                         self.run_job(failure_job, execution_stack.copy(), force=True)
 
                     job.result.set_status(JobStatus.ERROR)
@@ -222,7 +228,7 @@ class JobManager:
         if job.result.get_status() == JobStatus.SUCCESS:
             return job
         elif job.result.get_status() == JobStatus.ERROR:
-            raise Exception(
+            raise JobFailedError(
                 f"Job {job.id} failed with status {job.result.get_status()}"
             )
         else:

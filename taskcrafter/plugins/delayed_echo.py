@@ -1,4 +1,7 @@
-class Plugin:
+from taskcrafter.models.plugin import PluginInterface
+
+
+class Plugin(PluginInterface):
     name = "delayed_echo"
     description = "Echoes the message passed to it. 🐹"
 

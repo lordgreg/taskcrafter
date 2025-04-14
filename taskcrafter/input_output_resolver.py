@@ -38,16 +38,9 @@ class CacheManager:
     ) -> Optional[str]:
         path = self.get_output_file(job_id, attempt, key, is_error)
 
-        # check if more attempts exist, if so, return latest attempt
-        if not path.exists():
-            suffix = ".stderr" if is_error else ".stdout"
-            attempt_files = self.cache_dir.glob(f".{job_id}.*.*{suffix}")
-            if attempt_files:
-                attempt_files = sorted(attempt_files, key=os.path.getmtime)
-                path = attempt_files[-1]
-
         if path.exists():
             return path.read_text()
+
         return None
 
     def write_output(
@@ -73,16 +66,31 @@ class InputResolver:
         self.cache = cache
 
     def resolve(self, value: str) -> Any:
-        if isinstance(value, str):
-            if value.startswith("result:"):
-                return self._resolve_result(value)
-            elif value.startswith("env:"):
-                return self._resolve_env(value)
-            elif value.startswith("file:"):
-                return self._resolve_file(value)
-        return value
+        if not isinstance(value, str):
+            return value
+
+        pattern = re.compile(r"{(result|env|file):([a-zA-Z0-9-_.:]+)}")
+
+        def replace_token(match):
+            token_type = match.group(1)
+            token_value = match.group(2)
+            full_token = f"{token_type}:{token_value}"
+
+            if token_type == "result":
+                resolved = self._resolve_result(full_token)
+            elif token_type == "env":
+                resolved = self._resolve_env(full_token)
+            elif token_type == "file":
+                resolved = self._resolve_file(full_token)
+            else:
+                resolved = None
+
+            return resolved if resolved is not None else ""
+
+        return pattern.sub(replace_token, value)
 
     def _resolve_result(self, value: str) -> Optional[str]:
+        # Supports: result:job_id in result:job_id:key
         match = re.match(r"result:([\w-]+)(?::([\w-]+))?", value)
         if not match:
             return None
@@ -90,12 +98,10 @@ class InputResolver:
         return self.cache.read_output(job_id=job_id, key=key, is_error=False)
 
     def _resolve_env(self, value: str) -> Optional[str]:
-        _, var = value.split(":", 1)
-        return os.getenv(var)
+        _, var_name = value.split(":", 1)
+        return os.getenv(var_name)
 
     def _resolve_file(self, value: str) -> Optional[str]:
-        _, filepath = value.split(":", 1)
-        path = Path(filepath)
-        if path.exists():
-            return path.read_text()
-        return None
+        _, file_path = value.split(":", 1)
+        path = Path(file_path)
+        return path.read_text() if path.exists() else None

@@ -18,9 +18,10 @@ Raises:
 import os
 import subprocess
 from taskcrafter.logger import app_logger
+from taskcrafter.models.plugin import PluginInterface
 
 
-class Plugin:
+class Plugin(PluginInterface):
     name = "binary"
     description = "Executes a binary file with arguments. 🐹"
 

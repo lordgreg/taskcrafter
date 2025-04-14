@@ -12,6 +12,8 @@ from taskcrafter.preview import (
     plugin_list_preview,
 )
 from taskcrafter.config import app_config
+from taskcrafter.util.validator import validate_hooks, validate_jobs, validate_schema
+from taskcrafter.util.yaml import get_yaml_from_string
 
 JOBS_FILE = "jobs/jobs.yaml"
 
@@ -19,15 +21,8 @@ schedulerManager: SchedulerManager = None
 
 
 @click.group()
-@click.option(
-    "--file",
-    type=click.Path(exists=True),
-    default=JOBS_FILE,
-    help="Name of the jobs file (yaml).",
-)
-def cli(file: str = JOBS_FILE):
+def cli():
     """CLI for TaskCrafter."""
-    app_config.jobs_file = file
 
 
 @cli.command()
@@ -36,27 +31,42 @@ def help():
     click.echo("This is the help command. Use --help for more information.")
 
 
+def validate_and_initialize():
+    """Reads file, validates schema, initializes plugins, and sets up managers."""
+    file_content = get_file_content(app_config.jobs_file)
+    yaml = get_yaml_from_string(file_content)
+    validate_schema(yaml)
+    init_plugins()
+
+    jobManager = JobManager(file_content)
+    hookManager = HookManager(file_content, job_manager=jobManager)
+
+    try:
+        validate_jobs(jobManager.jobs)
+        validate_hooks(hookManager.hooks)
+    except Exception as e:
+        app_logger.error(e)
+        return None, None
+
+    return jobManager, hookManager
+
+
 def run_helper(job_id: str):
     """
     Core logic for running jobs. Can be called programmatically.
     """
     global schedulerManager
 
-    file_content = get_file_content(app_config.jobs_file)
-
-    jobManager = JobManager(file_content)
-    jobManager.validate()
-
-    hookManager = HookManager(file_content, job_manager=jobManager)
-    hookManager.validate()
-
-    init_plugins()
+    jobManager, hookManager = validate_and_initialize()
+    if jobManager is None or hookManager is None:
+        return
 
     if job_id:
         try:
             job = jobManager.job_get_by_id(job_id)
         except ValueError:
             app_logger.error(f"Job {job_id} does not exist.")
+
         jobManager.jobs = [job]
 
     schedulerManager = SchedulerManager(
@@ -71,7 +81,19 @@ def run_helper(job_id: str):
     result_table(jobManager.jobs)
 
 
-@cli.command()
+@click.group()
+@click.option(
+    "--file",
+    type=click.Path(exists=True),
+    default=JOBS_FILE,
+    help="Name of the jobs file (yaml).",
+)
+def jobs(file: str = JOBS_FILE):
+    """Manage jobs."""
+    app_config.jobs_file = file
+
+
+@jobs.command()
 @click.option("--job", "job_id", help="Name of the job.")
 def run(job_id: str):
     """
@@ -83,7 +105,15 @@ def run(job_id: str):
     run_helper(job_id)
 
 
-@cli.command()
+@jobs.command()
+def validate():
+    """Validate jobs from YAML file."""
+    jobManager, hookManager = validate_and_initialize()
+    if jobManager is None or hookManager is None:
+        return
+
+
+@jobs.command()
 def list():
     """List all jobs from YAML file."""
     file_content = get_file_content(app_config.jobs_file)
@@ -126,6 +156,7 @@ def plugin_info(name):
     plugin_info_preview(plugin)
 
 
+cli.add_command(jobs)
 cli.add_command(plugins)
 
 

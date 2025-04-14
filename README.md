@@ -129,6 +129,8 @@ Targets:
       The output currently isn't required, since each plugin returns an item.
       This will always be saved in the .cache directory.
 
+- [x] Validate if all jobs are defined correctly and reference to the existing plugin
+- [x] The inputs now support templating with result, env and file
 - [ ] New plugin type: `terminate`
 - [ ] Docs: Document plugin dev best practices
 - [ ] Add `--log-file` and `--log-level` CLI flag

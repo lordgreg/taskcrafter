@@ -1,4 +1,7 @@
-class Plugin:
+from taskcrafter.models.plugin import PluginInterface
+
+
+class Plugin(PluginInterface):
     name = "url"
     description = "Opens a URL in the default web browser."
 

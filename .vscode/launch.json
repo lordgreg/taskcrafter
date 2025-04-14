@@ -13,12 +13,12 @@
             "args": ""
         },
         {
-            "name": "list",
+            "name": "jobs list",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": "list"
+            "args": "jobs list"
         },
         {
             "name": "run all",
@@ -26,15 +26,23 @@
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": "run"
+            "args": "jobs run"
         },
         {
-            "name": "  run containers",
+            "name": "validate",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": "--file jobs/containers.yaml run"
+            "args": "jobs validate"
+        },
+        {
+            "name": "run containers",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": "--file jobs/containers.yaml jobs run"
         },
         {
             "name": "run single",
@@ -42,7 +50,7 @@
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": "run --job execute_binary"
+            "args": "jobs run --job execute_binary"
         },
         {
             "name": "plugins list",

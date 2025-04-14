@@ -1,0 +1,21 @@
+jobs:
+  - id: notification_on_failure
+    name: Notification on Failure
+    enabled: false
+    plugin: desktop-notifier
+    params:
+      message: "Rclone isnt running"
+
+  - id: check_rclone_health
+    name: Check Rclone Health
+    plugin: binary
+    schedule: "* * * * *"
+    params:
+      command: bash
+      args:
+        - "-c"
+        - "
+          pgrep rclone || (echo 'Rclone is not running' && exit 1)
+          "
+    on_failure:
+      - notification_on_failure

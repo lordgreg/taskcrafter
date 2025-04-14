@@ -2,7 +2,6 @@ import time
 import threading
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.events import (
@@ -11,6 +10,7 @@ from apscheduler.events import (
     JobSubmissionEvent,
     JobEvent,
 )
+from taskcrafter.exceptions.hook import HookNotFound
 from taskcrafter.logger import app_logger
 from taskcrafter.job_loader import JobManager
 from taskcrafter.hook_loader import HookManager
@@ -19,11 +19,7 @@ from taskcrafter.models.hook import HookType
 
 class SchedulerManager:
     def __init__(self, job_manager: JobManager, hook_manager: HookManager):
-        self.stores = {
-            "default": MemoryJobStore(),
-            "hooks": MemoryJobStore(),
-        }
-        self.scheduler = BackgroundScheduler(jobstores=self.stores)
+        self.scheduler = BackgroundScheduler()
         self.job_manager = job_manager
         self.hook_manager = hook_manager
         self.executed_hooks = []
@@ -67,6 +63,15 @@ class SchedulerManager:
                     f"scheduler: {event.job_id} failed with exception: {event.exception}"
                 )
 
+            scheduler_job = self.scheduler.get_job(event.job_id)
+            if scheduler_job is not None and isinstance(
+                scheduler_job.trigger, CronTrigger
+            ):
+                app_logger.debug(
+                    f"Job {job_id} is cron job and will be rescheduled. Scheduler wont be stopped."
+                )
+                return
+
             self.schedule_hook_jobs(HookType.AFTER_JOB, event)
 
             self.job_manager.job_get_by_id(job_id).result.stop()
@@ -94,7 +99,8 @@ class SchedulerManager:
 
             self.executed_hooks.append(hook)
 
-        except ValueError:
+        except HookNotFound as e:
+            app_logger.debug(e)
             return None
 
         try:
@@ -121,7 +127,7 @@ class SchedulerManager:
             job_id = schedule_job_id
 
         if job.enabled is False and not force:
-            app_logger.warning(f"Job {job_id} is disabled and won't be executed.")
+            app_logger.debug(f"Job {job_id} is disabled and won't be executed.")
             return
 
         if not cron_schedule:
@@ -135,7 +141,6 @@ class SchedulerManager:
             args=[job],
             kwargs={"force": force},
             id=job_id,
-            jobstore="hooks" if is_hook else "default",
         )
 
         app_logger.info(
