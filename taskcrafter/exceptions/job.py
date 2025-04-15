@@ -12,3 +12,7 @@ class JobFailedError(JobError):
 
 class JobValidationError(JobError):
     pass
+
+
+class JobKillSignalError(JobError):
+    pass

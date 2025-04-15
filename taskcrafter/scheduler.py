@@ -11,6 +11,7 @@ from apscheduler.events import (
     JobEvent,
 )
 from taskcrafter.exceptions.hook import HookNotFound
+from taskcrafter.exceptions.job import JobKillSignalError
 from taskcrafter.logger import app_logger
 from taskcrafter.job_loader import JobManager
 from taskcrafter.hook_loader import HookManager
@@ -36,7 +37,7 @@ class SchedulerManager:
         self.scheduler.add_listener(self.event_listener_job, EVENT_ALL)
         self.scheduler.start()
 
-        app_logger.info("Scheduler started.")
+        app_logger.debug("Scheduler started.")
 
         # check and execute BEFORE_ALL hook
         self.schedule_hook_jobs(HookType.BEFORE_ALL)
@@ -47,7 +48,7 @@ class SchedulerManager:
                 time.sleep(1)
         except (KeyboardInterrupt, SystemExit):
             self.stop_scheduler()
-            app_logger.info("Scheduler stopped.")
+            app_logger.debug("Scheduler stopped.")
 
     def event_listener_job(self, event):
         if isinstance(event, JobEvent):
@@ -57,6 +58,13 @@ class SchedulerManager:
             self.schedule_hook_jobs(HookType.BEFORE_JOB, event)
         elif isinstance(event, JobExecutionEvent):
             if event.exception:
+                if isinstance(event.exception, JobKillSignalError):
+                    app_logger.warning(
+                        f"Job {job_id} is exit job, scheduler will be stopped."
+                    )
+                    self._event.set()
+                    return
+
                 self.schedule_hook_jobs(HookType.ON_ERROR, event)
                 app_logger.error(
                     f"scheduler: {event.job_id} failed with exception: {event.exception}"
@@ -72,13 +80,6 @@ class SchedulerManager:
                 return
 
             self.schedule_hook_jobs(HookType.AFTER_JOB, event)
-
-            if self.job_manager.job_get_by_id(job_id).plugin == "exit":
-                app_logger.warning(
-                    f"Job {job_id} is exit job, scheduler will be stopped."
-                )
-                self._event.set()
-                return
 
             if self.job_manager.get_in_progress() == 0:
                 hook_executed = self.schedule_hook_jobs(HookType.AFTER_ALL, event)

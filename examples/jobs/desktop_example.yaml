@@ -6,6 +6,13 @@ jobs:
     params:
       message: "Rclone isnt running"
 
+  - id: exit_job
+    name: Exit Job
+    enabled: false
+    plugin: exit
+    params:
+      code: 1
+
   - id: check_rclone_health
     name: Check Rclone Health
     plugin: binary
@@ -19,3 +26,5 @@ jobs:
           "
     on_failure:
       - notification_on_failure
+      # you can send kill switch to exit taskcrafter
+      # - exit_job

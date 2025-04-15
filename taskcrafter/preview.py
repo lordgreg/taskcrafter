@@ -79,7 +79,7 @@ def result_table(jobs: list[Job]):
             case JobStatus.SUCCESS:
                 status = Text(job.result.get_status().value, "green")
             case _:
-                continue
+                status = Text("n/a", "yellow")
 
         table.add_row(
             str(job.id),

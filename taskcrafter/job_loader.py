@@ -3,9 +3,13 @@ import time
 from datetime import datetime
 from taskcrafter.exceptions.job import (
     JobFailedError,
+    JobKillSignalError,
     JobNotFoundError,
 )
-from taskcrafter.exceptions.plugin import PluginExecutionTimeoutError
+from taskcrafter.exceptions.plugin import (
+    PluginExecutionError,
+    PluginExecutionTimeoutError,
+)
 from taskcrafter.plugin_loader import plugin_execute
 from taskcrafter.logger import app_logger
 from taskcrafter.container import run_job_in_docker
@@ -162,7 +166,11 @@ class JobManager:
                         queue_result = queue.get()
 
                         if isinstance(queue_result, Exception) or job.plugin == "exit":
-                            raise queue_result
+                            # add job to executed jobs since its kill switch afterwards.
+                            job.result.stop()
+                            job.result.set_status(JobStatus.ERROR)
+                            self.executed_jobs.append(deepcopy(job))
+                            raise JobKillSignalError(queue_result)
 
                     process.terminate()
 
@@ -185,7 +193,7 @@ class JobManager:
                 job.result.set_status(JobStatus.ERROR)
                 break
 
-            except Exception as e:
+            except PluginExecutionError as e:
                 app_logger.error(
                     f"Job {job.id} executed with exception ({type(e)}): {e}"
                 )
