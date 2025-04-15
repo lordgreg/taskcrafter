@@ -23,6 +23,7 @@ schedulerManager: SchedulerManager = None
 @click.group()
 @click.option(
     "--file",
+    "-f",
     type=click.Path(exists=True),
     default=JOBS_FILE,
     help="Name of the jobs file (yaml).",
@@ -36,6 +37,23 @@ def cli(file: str = JOBS_FILE):
 @cli.command()
 def help():
     """Display help information."""
+    ctx = click.get_current_context()
+    click.echo(cli.get_help(ctx))
+
+    click.echo("\n🔍 Examples:\n")
+
+    # Glavni ukazi
+    for command_name, command_obj in cli.commands.items():
+        if hasattr(
+            command_obj, "commands"
+        ):  # če je group znotraj groupa (npr. jobs, plugins)
+            for subcommand_name in command_obj.commands:
+                click.echo(f"  taskcrafter {command_name} {subcommand_name}")
+        else:
+            click.echo(f"  taskcrafter {command_name}")
+
+    click.echo("\nℹ️  Use --help with any command to get more details.")
+    click.echo("   e.g., taskcrafter jobs run --help\n")
 
 
 def validate_and_initialize():
@@ -95,12 +113,16 @@ def jobs():
 
 
 @jobs.command()
-@click.option("--job", "job_id", help="Name of the job.")
+@click.option("--job", "-j", "job_id", help="Name of the job.")
 def run(job_id: str):
     """
-    Runs all jobs from YAML file.
-    If a --job parameter is provided, it runs only that job.
-    Restarts if app_config.jobs_file changes.
+    Runs all jobs from YAML file. If a --job parameter is provided, it runs only that job.
+
+    Examples:
+
+    \b
+        taskcrafter jobs run
+        taskcrafter jobs run --job job1
     """
 
     run_helper(job_id)
@@ -132,7 +154,14 @@ def plugins():
 
 @plugins.command("list")
 def plugins_list():
-    """List all available plugins."""
+    """
+    List all available plugins.
+
+    Examples:
+
+    \b
+        taskcrafter plugins list
+    """
     app_logger.info("Listing all available plugins...")
     plugins = plugin_list()
 
@@ -147,7 +176,14 @@ def plugins_list():
 @plugins.command("info")
 @click.argument("name")
 def plugin_info(name):
-    """Show detailed info about a specific plugin."""
+    """
+    Show detailed info about a specific plugin.
+
+    Examples:
+
+    \b
+        taskcrafter plugins info echo
+    """
     plugin = plugin_lookup(name)
 
     if not plugin:
