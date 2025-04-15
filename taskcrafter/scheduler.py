@@ -55,7 +55,6 @@ class SchedulerManager:
 
         if isinstance(event, JobSubmissionEvent):
             self.schedule_hook_jobs(HookType.BEFORE_JOB, event)
-            self.job_manager.job_get_by_id(job_id).result.start()
         elif isinstance(event, JobExecutionEvent):
             if event.exception:
                 self.schedule_hook_jobs(HookType.ON_ERROR, event)
@@ -74,7 +73,6 @@ class SchedulerManager:
 
             self.schedule_hook_jobs(HookType.AFTER_JOB, event)
 
-            self.job_manager.job_get_by_id(job_id).result.stop()
             if self.job_manager.get_in_progress() == 0:
                 hook_executed = self.schedule_hook_jobs(HookType.AFTER_ALL, event)
 
@@ -83,7 +81,7 @@ class SchedulerManager:
                     app_logger.info("No more jobs in progress.")
                     self._event.set()
 
-    def get_job_id_from_schedule_id(self, schedule_id):
+    def get_job_id_from_schedule_id(self, schedule_id) -> str:
         # if schedule_id is "Hook(<hookType>)__<jobId>"
         if schedule_id.startswith("Hook("):
             return schedule_id.split("__")[1]

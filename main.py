@@ -28,24 +28,24 @@ def cli():
 @cli.command()
 def help():
     """Display help information."""
-    click.echo("This is the help command. Use --help for more information.")
 
 
 def validate_and_initialize():
     """Reads file, validates schema, initializes plugins, and sets up managers."""
-    file_content = get_file_content(app_config.jobs_file)
-    yaml = get_yaml_from_string(file_content)
-    validate_schema(yaml)
-    init_plugins()
-
-    jobManager = JobManager(file_content)
-    hookManager = HookManager(file_content, job_manager=jobManager)
 
     try:
+        file_content = get_file_content(app_config.jobs_file)
+        yaml = get_yaml_from_string(file_content)
+        validate_schema(yaml)
+        init_plugins()
+
+        jobManager = JobManager(file_content)
+        hookManager = HookManager(file_content, job_manager=jobManager)
+
         validate_jobs(jobManager.jobs)
         validate_hooks(hookManager.hooks)
     except Exception as e:
-        app_logger.error(e)
+        app_logger.error(f"{e.__class__.__name__}: {e}")
         return None, None
 
     return jobManager, hookManager
@@ -78,7 +78,7 @@ def run_helper(job_id: str):
 
     schedulerManager.start_scheduler()
 
-    result_table(jobManager.jobs)
+    result_table(jobManager.executed_jobs)
 
 
 @click.group()

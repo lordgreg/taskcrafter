@@ -40,6 +40,7 @@ class JobResult:
     start_time: int = 0
     end_time: int = 0
     status: JobStatus = None
+    execution_stack: list[str] = field(default_factory=list)
 
     def get_elapsed_time(self) -> int:
         """Returns elapsed time in miliseconds"""

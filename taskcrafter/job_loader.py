@@ -1,3 +1,4 @@
+from copy import deepcopy
 import time
 from datetime import datetime
 from taskcrafter.exceptions.job import (
@@ -43,6 +44,7 @@ class JobManager:
         self.cache = CacheManager()
         self.resolver = InputResolver(self.cache)
         self.jobs: list[Job] = self.load_jobs(job_file_content)
+        self.executed_jobs: list[Job] = []
 
     def get_in_progress(self) -> int:
         return len(
@@ -98,6 +100,8 @@ class JobManager:
             return
 
         execution_stack.append(job.id)
+        job.result.execution_stack = execution_stack
+        job.result.start()
 
         is_pending = False
         for dep in job.depends_on:
@@ -155,7 +159,7 @@ class JobManager:
                         raise PluginExecutionTimeoutError()
                     else:
                         process.join()
-                        queue_result: str | dict = queue.get()
+                        queue_result = queue.get()
 
                         if isinstance(queue_result, Exception):
                             raise queue_result
@@ -163,9 +167,8 @@ class JobManager:
                     process.terminate()
 
                 app_logger.info(f"Job {job.id} executed successfully.")
-                self.cache.write_output(job.id, queue_result)
+                self.cache.write_output(job.id, queue_result if queue_result else "")
                 for on_success in job.on_success:
-                    app_logger.info(f"Running on_success jobs: {on_success}...")
                     success_job = self.job_get_by_id(on_success)
                     self.run_job(success_job, execution_stack.copy(), force=True)
 
@@ -193,8 +196,7 @@ class JobManager:
                     for on_failure in job.on_failure:
                         app_logger.info(f"Running on_failure jobs: {on_failure}...")
                         failure_job = self.job_get_by_id(on_failure)
-                        # if on_failure job is calling desktop-notify, the code below yields an error
-                        # TODO: fix this
+
                         self.run_job(failure_job, execution_stack.copy(), force=True)
 
                     job.result.set_status(JobStatus.ERROR)
@@ -225,6 +227,9 @@ class JobManager:
             self.run_job(finish_job, execution_stack.copy())
 
         # giving scheduler feedback
+        job.result.stop()
+        self.executed_jobs.append(deepcopy(job))
+
         if job.result.get_status() == JobStatus.SUCCESS:
             return job
         elif job.result.get_status() == JobStatus.ERROR:

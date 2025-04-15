@@ -66,7 +66,11 @@ def result_table(jobs: list[Job]):
     table.add_column("Name", style="bold")
     table.add_column("Status", style="bold")
     table.add_column("Retries", style="bold")
+    table.add_column("Stack", style="bold")
     table.add_column("Duration", style="bold")
+
+    # sort by result.start_time
+    jobs = sorted(jobs, key=lambda x: x.result.start_time)
 
     for job in jobs:
         match job.result.status:
@@ -75,7 +79,6 @@ def result_table(jobs: list[Job]):
             case JobStatus.SUCCESS:
                 status = Text(job.result.get_status().value, "green")
             case _:
-                # status = job.result.get_status().value
                 continue
 
         table.add_row(
@@ -83,6 +86,7 @@ def result_table(jobs: list[Job]):
             job.name,
             status,
             str(job.result.retries),
+            " > ".join(job.result.execution_stack),
             f"{job.result.get_elapsed_time():.3f}s",
         )
 
