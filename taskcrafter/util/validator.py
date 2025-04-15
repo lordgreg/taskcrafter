@@ -46,7 +46,7 @@ def _validate_job_plugin_and_params(job: Job):
             # No validation yet here; needs full job output context
 
 
-def validate_jobs(jobs: List[Job]):
+def validate_jobs(jobs: List[Job], show_report: bool = False):
     ids = set()
     id_to_job: Dict[str, Job] = {}
 
@@ -112,10 +112,11 @@ def validate_jobs(jobs: List[Job]):
         for field in ["on_success", "on_failure", "on_finish"]:
             visit_local(job_id, field)
 
-    app_logger.info("Job validation passed.")
+    if show_report:
+        app_logger.info("Job validation passed.")
 
 
-def validate_hooks(hooks: List[Hook]):
+def validate_hooks(hooks: List[Hook], show_report: bool = False):
     for hook in hooks:
         if hook.type not in HookType:
             raise HookValidationError(f"Unknown hook type: {hook.type}")
@@ -159,4 +160,5 @@ def validate_hooks(hooks: List[Hook]):
         for job_id in job_ids:
             visit_hook(job_id)
 
-    app_logger.info("Hook validation passed.")
+    if show_report:
+        app_logger.info("Hook validation passed.")

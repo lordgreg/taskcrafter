@@ -56,7 +56,7 @@ def help():
     click.echo("   e.g., taskcrafter jobs run --help\n")
 
 
-def validate_and_initialize():
+def validate_and_initialize(show_report: bool = False):
     """Reads file, validates schema, initializes plugins, and sets up managers."""
 
     try:
@@ -68,8 +68,8 @@ def validate_and_initialize():
         jobManager = JobManager(file_content)
         hookManager = HookManager(file_content, job_manager=jobManager)
 
-        validate_jobs(jobManager.jobs)
-        validate_hooks(hookManager.hooks)
+        validate_jobs(jobManager.jobs, show_report=show_report)
+        validate_hooks(hookManager.hooks, show_report=show_report)
     except Exception as e:
         app_logger.error(f"{e.__class__.__name__}: {e}")
         return None, None
@@ -131,7 +131,7 @@ def run(job_id: str):
 @jobs.command()
 def validate():
     """Validate jobs from YAML file."""
-    jobManager, hookManager = validate_and_initialize()
+    jobManager, hookManager = validate_and_initialize(show_report=True)
     if jobManager is None or hookManager is None:
         return
 
