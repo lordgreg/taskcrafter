@@ -54,11 +54,11 @@ class CacheManager:
         if isinstance(value, dict):
             for key, val in value.items():
                 path = self.get_output_file(job_id, attempt, key, is_error)
-                path.write_text(val)
+                path.write_text(str(val))
 
         else:
             path = self.get_output_file(job_id, attempt, key, is_error)
-            path.write_text(value)
+            path.write_text(str(value))
 
 
 class InputResolver:

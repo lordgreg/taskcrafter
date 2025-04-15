@@ -22,10 +22,14 @@ from taskcrafter.models.plugin import PluginInterface
 
 class Plugin(PluginInterface):
     name = "Echo"
-    description = "Echoes the message passed to it. 🐹"
+    description = "Returns end echoes each key in dict or string 🐹"
 
     def run(self, params: dict):
-        message = params.get("message", "Hello World!")
-        print(message)
 
-        return message
+        if not isinstance(params, dict):
+            params = {"message": "Hello world!"}
+
+        for key, value in params.items():
+            print(f"{key}: {value}")
+
+        return params

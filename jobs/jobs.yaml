@@ -1,5 +1,16 @@
 jobs:
-  - id: exit_because
-    name: Exit because
-    enabled: true
-    plugin: file:./examples/custom_plugins/batman.py
+  - id: hello_multiple
+    name: Hello Multiple
+    plugin: echo
+    params:
+      message: "Hello from %JOB_ID%!"
+      number: 42
+      current_time: "%CURRENT_TIME%"
+
+  - id: checking_params_from_previous
+    name: Checking params from previous job
+    plugin: echo
+    input:
+      message: "The number is: {result:hello_multiple:number}@{result:hello_multiple:current_time}"
+    depends_on:
+      - hello_multiple
