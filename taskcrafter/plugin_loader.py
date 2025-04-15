@@ -61,13 +61,15 @@ def plugin_list() -> list[PluginEntry]:
 
 def get_external_plugin_names(yaml: dict) -> list[str]:
     try:
-        return [
-            job["plugin"].split(":")[1]
-            for job in yaml
-            if job["plugin"].startswith("file:")
-        ]
-    except KeyError:
-        raise PluginExternalError("Cannot search for external plugins.")
+        external_plugins = []
+        for job in yaml:
+            if "plugin" in job and job["plugin"].startswith("file:"):
+                plugin_name = job["plugin"].split(":")[1]
+                if plugin_name is not None and plugin_name != "":
+                    external_plugins.append(plugin_name)
+        return external_plugins
+    except TypeError as e:
+        raise PluginExternalError(e)
 
 
 def plugin_lookup(id: str) -> PluginEntry:
@@ -95,18 +97,17 @@ def validate_plugin(instance) -> bool:
 
 
 def get_plugin_doc(module: ModuleType) -> str:
-    """
-    Extracts the documentation from a plugin module.
-    """
-    plugin_module_doc = module.__doc__
-    if plugin_module_doc is not None:
-        return plugin_module_doc.strip()
+    """Extracts the documentation from a plugin module."""
+
+    module_doc = module.__doc__
+    if module_doc is not None:
+        return module_doc.strip()
 
     plugin_class = getattr(module, "Plugin", None)
     if plugin_class is not None:
-        plugin_class_doc = plugin_class.__doc__
-        if plugin_class_doc is not None:
-            return plugin_class_doc.strip()
+        class_doc = plugin_class.__doc__
+        if class_doc is not None:
+            return class_doc.strip()
 
         run_method = getattr(plugin_class, "run", None)
         if run_method is not None and run_method.__doc__ is not None:

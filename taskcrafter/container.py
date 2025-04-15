@@ -1,4 +1,4 @@
-from taskcrafter.exceptions.container import ContainerError
+from taskcrafter.exceptions.container import ContainerError, ContainerExecutionError
 from taskcrafter.models.job import Job
 from taskcrafter.logger import app_logger
 import docker
@@ -32,7 +32,12 @@ def run_job_in_docker(job: Job, params: dict = None):
 
         exit_code = container.wait()["StatusCode"]
 
-        return exit_code, logs.decode()
+        if exit_code != 0:
+            raise ContainerExecutionError(
+                f"Container execution failed with exit code {exit_code}"
+            )
+
+        return logs.decode()
     except docker.errors.DockerException as e:
         app_logger.error(f"Container execution failed: {e}")
         raise ContainerError(e)

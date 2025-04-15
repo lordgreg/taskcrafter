@@ -68,5 +68,14 @@
             "console": "integratedTerminal",
             "args": "plugins info batman"
         },
+        {
+            "name": "run specific job file",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": "--file jobs/${command:pickArgs}.yaml jobs run",
+
+        },
     ]
 }

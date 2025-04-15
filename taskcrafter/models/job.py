@@ -84,7 +84,7 @@ class Job:
         if self.container is not None:
             self.container = JobContainer(**self.container)
 
-        if self.plugin.startswith("file:"):
+        if self.plugin is not None and self.plugin.startswith("file:"):
             file_name = self.plugin.split(":")[1]
             plugin_path = pathlib.Path(file_name)
 

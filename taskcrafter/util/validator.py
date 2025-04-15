@@ -29,8 +29,13 @@ def validate_schema(
 
 
 def _validate_job_plugin_and_params(job: Job):
-    if not job.plugin:
-        raise JobValidationError(f"Job '{job.id}' is missing a plugin name.")
+    if not job.plugin and not job.container:
+        raise JobValidationError(
+            f"Job '{job.id}' is missing a plugin name or container object."
+        )
+
+    if job.container is not None:
+        return
 
     plugin = plugin_lookup(job.plugin)
     if not plugin:

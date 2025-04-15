@@ -22,7 +22,6 @@ jobs:
       image: alpine:latest
       command: |-
         sh -c '
-          su -
           echo "WHO AM I? $(whoami)"
           echo ">>>" ${message}! "<<<" && env
           tree -a /app/configs
@@ -37,3 +36,19 @@ jobs:
         - /tmp/configs:/app/configs
     depends_on:
       - create_file
+
+  - id: result_from_file
+    name: Echo results using file
+    plugin: echo
+    input:
+      message: "==================FROM FILE==================\n{file:/tmp/configs/hello.txt}"
+    depends_on:
+      - hello_from_container
+
+  - id: result_from_result
+    name: Echo results using result
+    plugin: echo
+    input:
+      message: "==================FROM RESULT==================\n{result:hello_from_container}"
+    depends_on:
+      - hello_from_container

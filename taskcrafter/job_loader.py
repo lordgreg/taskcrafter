@@ -141,7 +141,7 @@ class JobManager:
 
                 if job.container:
                     app_logger.info(f"Running job {job.id} in container...")
-                    run_job_in_docker(job, resolved_params)
+                    queue_result = run_job_in_docker(job, resolved_params)
                 else:
                     from multiprocessing import Process, Queue
 
