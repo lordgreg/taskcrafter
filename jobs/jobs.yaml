@@ -1,31 +1,11 @@
 jobs:
-  - id: hello
-    name: Hello World Job
+  - id: exit_because
+    name: Exit because
+    enabled: true
+    plugin: exit
+
+  - id: just_hello
+    name: Just Hello
+    enabled: true
     plugin: echo
-    params:
-      message: "Hello, World!"
-    on_success:
-      - hello_2
-      - hello_world_success
-
-  - id: hello_2
-    name: Hello with params
-    plugin: echo
-    # enabled: false
-    input:
-      message: "this is second hello what will execute on success"
-
-  - id: hello_world_success
-    enabled: false
-    name: Hello world Success Job
-    plugin: desktop-notifier
-    params:
-      message: "We succeeded!"
-
-  # - id: hello_2
-  #   name: Hello with params
-  #   plugin: echo
-  #   input:
-  #     message: "Well this is {result:hello:foo} without {result:hello:message}"
-  #   depends_on:
-  #     - hello
+    depends_on: [exit_because]

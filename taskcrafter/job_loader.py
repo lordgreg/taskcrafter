@@ -161,7 +161,7 @@ class JobManager:
                         process.join()
                         queue_result = queue.get()
 
-                        if isinstance(queue_result, Exception):
+                        if isinstance(queue_result, Exception) or job.plugin == "exit":
                             raise queue_result
 
                     process.terminate()

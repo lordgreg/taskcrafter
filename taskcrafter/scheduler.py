@@ -73,6 +73,13 @@ class SchedulerManager:
 
             self.schedule_hook_jobs(HookType.AFTER_JOB, event)
 
+            if self.job_manager.job_get_by_id(job_id).plugin == "exit":
+                app_logger.warning(
+                    f"Job {job_id} is exit job, scheduler will be stopped."
+                )
+                self._event.set()
+                return
+
             if self.job_manager.get_in_progress() == 0:
                 hook_executed = self.schedule_hook_jobs(HookType.AFTER_ALL, event)
 

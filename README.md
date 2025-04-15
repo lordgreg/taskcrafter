@@ -131,7 +131,11 @@ Targets:
 
 - [x] Validate if all jobs are defined correctly and reference to the existing plugin
 - [x] The inputs now support templating with result, env and file
-- [ ] New plugin type: `terminate`
+- [x] New plugin type: `terminate`
+
+      Its called exit. For now, only string is being checked, no need for new
+      PluginType Enum
+
 - [ ] Docs: Document plugin dev best practices
 - [ ] Add `--log-file` and `--log-level` CLI flag
 - [ ] More unit tests, get to 100% code coverage 😊
