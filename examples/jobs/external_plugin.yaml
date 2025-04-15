@@ -2,4 +2,4 @@ jobs:
   - id: exit_because
     name: Exit because
     enabled: true
-    plugin: file:./demos/custom_plugins/batman.py
+    plugin: file:./examples/custom_plugins/batman.py

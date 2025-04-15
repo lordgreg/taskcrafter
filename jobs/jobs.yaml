@@ -2,10 +2,4 @@ jobs:
   - id: exit_because
     name: Exit because
     enabled: true
-    plugin: exit
-
-  - id: just_hello
-    name: Just Hello
-    enabled: true
-    plugin: echo
-    depends_on: [exit_because]
+    plugin: file:./examples/custom_plugins/batman.py

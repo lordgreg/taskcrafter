@@ -8,7 +8,9 @@ TaskCrafter is a developer-first, CLI-based task scheduler that lets you define 
 
 - ✅ Declarative YAML job definitions
 - 🔁 Chain jobs with `on_success`, `on_failure`, `depends_on`, etc.
+- 🪝 Use global hooks `before_all`, `after_all`, `on_error`, `before_job` and `after_job`
 - 🧩 Python plugin architecture, container execution, and binary support
+- 🐋 Executing jobs using containers (Podman support included!)
 - 📥 Inputs/Outputs between jobs with cache-based file passing
 - 🧠 Templating and variable resolution from env, files, or results
 - 📦 Git-friendly and lightweight
@@ -65,10 +67,12 @@ class Plugin:
 
     def run(self, params, inputs=None):
         print(params.get("message", "HELLO WORLD"))
+
+        return { "message": "I am a plugin", "foo": "bar" }
 ```
 
 - All plugins are auto-registered
-- You can define metadata, description, and structured output
+- You can define metadata, description, and structured or stringified output
 - Plugins can access job inputs via `inputs` param
 
 ---
@@ -76,10 +80,12 @@ class Plugin:
 ## 🕹️ CLI Usage
 
 ```bash
-taskcrafter list                # List all jobs
-taskcrafter run <job_id>        # Run a specific job
-taskcrafter run                 # Run the full DAG
-taskcrafter preview             # Visualize job flow
+taskcrafter jobs list                   # List all jobs
+taskcrafter jobs run                    # Execute all jobs
+taskcrafter jobs run <job_id>           # Execute a specific job
+taskcrafter jobs validate               # Validates jobs
+taskcrafter plugins list                # Visualize job flow
+taskcrafter plugins info <plugin_name>  # Show plugin info
 ```
 
 Global flags:

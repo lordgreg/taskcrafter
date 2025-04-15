@@ -1,3 +1,4 @@
+import pathlib
 import click
 from taskcrafter.logger import app_logger
 from taskcrafter.util.file import get_file_content
@@ -14,8 +15,10 @@ from taskcrafter.preview import (
 from taskcrafter.config import app_config
 from taskcrafter.util.validator import validate_hooks, validate_jobs, validate_schema
 from taskcrafter.util.yaml import get_yaml_from_string
+from taskcrafter.wizard import create_file_wizard
 
 JOBS_FILE = "jobs/jobs.yaml"
+
 
 schedulerManager: SchedulerManager = None
 
@@ -24,12 +27,17 @@ schedulerManager: SchedulerManager = None
 @click.option(
     "--file",
     "-f",
-    type=click.Path(exists=True),
+    type=click.Path(),
     default=JOBS_FILE,
     help="Name of the jobs file (yaml).",
 )
 def cli(file: str = JOBS_FILE):
     """CLI for TaskCrafter."""
+    file_path = pathlib.Path(file)
+
+    if not file_path.is_file():
+        if not create_file_wizard(file_path):
+            exit(1)
 
     app_config.jobs_file = file
 

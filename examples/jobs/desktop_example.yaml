@@ -2,7 +2,7 @@ jobs:
   - id: notification_on_failure
     name: Notification on Failure
     enabled: false
-    plugin: desktop-notifier
+    plugin: desktop_notifier
     params:
       message: "Rclone isnt running"
 
