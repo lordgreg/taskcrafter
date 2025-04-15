@@ -50,11 +50,8 @@ def help():
 
     click.echo("\n🔍 Examples:\n")
 
-    # Glavni ukazi
     for command_name, command_obj in cli.commands.items():
-        if hasattr(
-            command_obj, "commands"
-        ):  # če je group znotraj groupa (npr. jobs, plugins)
+        if hasattr(command_obj, "commands"):
             for subcommand_name in command_obj.commands:
                 click.echo(f"  taskcrafter {command_name} {subcommand_name}")
         else:

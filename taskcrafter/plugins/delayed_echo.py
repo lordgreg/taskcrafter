@@ -3,7 +3,7 @@ from taskcrafter.models.plugin import PluginInterface
 
 class Plugin(PluginInterface):
     name = "Delayed Echo"
-    description = "Echoes the message passed to it. 🐹"
+    description = "Guess what, it's a delayed echo! ⏰"
 
     def run(self, params: dict):
         """
@@ -22,5 +22,6 @@ class Plugin(PluginInterface):
         import time
 
         time.sleep(params.get("delay", 60))
-        print(params.get("message", "Hello, World!"))
-        return 0
+        message = params.get("message", "Hello, World!")
+        print(message)
+        return message

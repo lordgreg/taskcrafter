@@ -19,53 +19,41 @@ TaskCrafter is a developer-first, CLI-based task scheduler that lets you define 
 
 ---
 
-## 📦 Installation
+## 📦 Local setup
+
+_If you want to run TaskCrafter locally, follow these steps:_
 
 ```bash
-git clone https://github.com/your-org/taskcrafter
-cd taskcrafter
-make build  # optional, for creating a standalone binary
+# make sure you have .venv and requirements.txt installed
+python -m venv .venv
+source .venv/bin/activate
+
+# install requirements
+make install
+
+# run TaskCrafter
+python main.py
 ```
+
+- For debugging, vscode is suggested, all launcher options can be found in [`.vscode/launch.json`](.vscode/launch.json). Note that you need to install the `debugpy` extension for vscode to work. Feel free to use nvim (with nvim-dap and nvim-dap-python) if you prefer. As a matter of fact, you can use any editor you like. 🐕
 
 ---
 
 ## 📝 Example jobs.yaml
 
-```yaml
-jobs:
-  - id: hello
-    name: Hello World
-    plugin: hello
-    params:
-      message: "Hello from %JOB_ID%!"
-    enabled: true
-    timeout: 10
-    retries:
-      count: 2
-      interval: 5
-
-  - id: follow_up
-    name: Follow-up
-    plugin: hello
-    params:
-      message: "Output was: {{ inputs.hello.result }}"
-    depends_on:
-      - hello
-    input:
-      result: "result:hello"
-```
+There are a-lot of examples already provided, please see the [`examples/jobs/`](examples/jobs) folder.
 
 ---
 
 ## 🧩 Plugin System
 
 ```python
-class Plugin:
+class Plugin(PluginInterface):
     name = "hello"
     description = "Simple Hello plugin"
     long_description = "A simple plugin to print greetings"
 
-    def run(self, params, inputs=None):
+    def run(self, params):
         print(params.get("message", "HELLO WORLD"))
 
         return { "message": "I am a plugin", "foo": "bar" }
@@ -73,7 +61,8 @@ class Plugin:
 
 - All plugins are auto-registered
 - You can define metadata, description, and structured or stringified output
-- Plugins can access job inputs via `inputs` param
+- Please see the [`taskcrafter/plugins/`](taskcrafter/plugins/) directory on how plugins are defined. One of the basic examples is the [`echo`](taskcrafter/plugins/echo.py) plugin.
+- You can also use external plugins, just name the plugin in jobs YAML file as `file:/path/to/plugin.py`, an example can be found in [`examples/jobs/external_plugin.yaml`](examples/jobs/external_plugin.yaml)
 
 ---
 
