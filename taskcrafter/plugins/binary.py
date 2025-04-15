@@ -22,7 +22,7 @@ from taskcrafter.models.plugin import PluginInterface
 
 
 class Plugin(PluginInterface):
-    name = "binary"
+    name = "Binary"
     description = "Executes a binary file with arguments. 🐹"
 
     def run(self, params: dict):

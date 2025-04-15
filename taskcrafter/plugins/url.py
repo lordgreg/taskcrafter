@@ -2,7 +2,7 @@ from taskcrafter.models.plugin import PluginInterface
 
 
 class Plugin(PluginInterface):
-    name = "url"
+    name = "URL"
     description = "Opens a URL in the default web browser."
 
     def run(self, params: dict):

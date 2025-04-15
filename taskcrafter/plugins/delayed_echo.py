@@ -2,7 +2,7 @@ from taskcrafter.models.plugin import PluginInterface
 
 
 class Plugin(PluginInterface):
-    name = "delayed_echo"
+    name = "Delayed Echo"
     description = "Echoes the message passed to it. 🐹"
 
     def run(self, params: dict):

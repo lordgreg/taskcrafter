@@ -20,3 +20,7 @@ class PluginExecutionError(PluginError):
 
 class PluginNotFoundError(PluginError):
     pass
+
+
+class PluginExternalError(PluginError):
+    pass

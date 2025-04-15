@@ -98,11 +98,12 @@ def plugin_list_preview(plugins: list[PluginEntry]):
 
     table = Table(title="Plugin list")
 
+    table.add_column("Id", style="cyan")
     table.add_column("Name", style="cyan")
     table.add_column("Description")
 
     for plugin in plugins:
-        table.add_row(plugin.name, plugin.description)
+        table.add_row(plugin.id, plugin.name, plugin.description)
 
     console.print(table)
 
@@ -111,10 +112,11 @@ def plugin_info_preview(plugin: PluginEntry):
     console = Console()
 
     console.print(f"[bold cyan]Plugin Info - {plugin.name}[/]")
+    console.print(f"[bold]Id:[/] {plugin.id}")
     console.print(f"[bold]Name:[/] {plugin.name}")
     console.print(f"[bold]Description:[/] {plugin.description}")
     console.print(f"[bold]Class:[/] {plugin.__class__.__name__}")
-    console.print(f"[bold]Module:[/] {plugin.__class__.__module__}")
+    console.print(f"[bold]Module:[/] {plugin.instance.__module__}")
 
     if not plugin.docgen:
         docgen = "[italic]No documentation available.[/]"

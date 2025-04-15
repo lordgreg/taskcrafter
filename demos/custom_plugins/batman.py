@@ -21,11 +21,10 @@ from taskcrafter.models.plugin import PluginInterface
 
 
 class Plugin(PluginInterface):
-    name = "Echo"
-    description = "Echoes the message passed to it. 🐹"
+    name = "BATMAN 🦇"
+    description = "Have you ever danced with the devil in the pale moonlight? 🦇"
 
     def run(self, params: dict):
-        message = params.get("message", "Hello World!")
-        print(message)
+        print(self.description)
 
-        return message
+        return self.description

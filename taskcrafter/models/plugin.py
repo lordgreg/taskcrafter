@@ -8,6 +8,7 @@ from taskcrafter.logger import app_logger
 class PluginEntry:
     instance: object
     docgen: str = None
+    id: str = field(init=False)
     name: str = field(init=False)
     description: str = field(init=False)
     output: Optional[Union[dict, str]] = None
@@ -15,6 +16,7 @@ class PluginEntry:
     def __post_init__(self):
         self.name = self.instance.name
         self.description = self.instance.description
+        self.id = self.instance.__module__.split(".")[-1]
 
         output = getattr(self.instance, "output", None)
         if output is not None:

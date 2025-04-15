@@ -21,8 +21,16 @@ schedulerManager: SchedulerManager = None
 
 
 @click.group()
-def cli():
+@click.option(
+    "--file",
+    type=click.Path(exists=True),
+    default=JOBS_FILE,
+    help="Name of the jobs file (yaml).",
+)
+def cli(file: str = JOBS_FILE):
     """CLI for TaskCrafter."""
+
+    app_config.jobs_file = file
 
 
 @cli.command()
@@ -37,7 +45,7 @@ def validate_and_initialize():
         file_content = get_file_content(app_config.jobs_file)
         yaml = get_yaml_from_string(file_content)
         validate_schema(yaml)
-        init_plugins()
+        init_plugins(yaml)
 
         jobManager = JobManager(file_content)
         hookManager = HookManager(file_content, job_manager=jobManager)
@@ -82,15 +90,8 @@ def run_helper(job_id: str):
 
 
 @click.group()
-@click.option(
-    "--file",
-    type=click.Path(exists=True),
-    default=JOBS_FILE,
-    help="Name of the jobs file (yaml).",
-)
-def jobs(file: str = JOBS_FILE):
+def jobs():
     """Manage jobs."""
-    app_config.jobs_file = file
 
 
 @jobs.command()
@@ -116,17 +117,17 @@ def validate():
 @jobs.command()
 def list():
     """List all jobs from YAML file."""
-    file_content = get_file_content(app_config.jobs_file)
+    jobManager, hookManager = validate_and_initialize()
+    if jobManager is None or hookManager is None:
+        return
 
-    jobs = JobManager(file_content).jobs
-    hooks = HookManager(file_content, job_manager=JobManager(file_content)).hooks
-    rich_preview(jobs, hooks)
+    rich_preview(jobManager.jobs, hookManager.hooks)
 
 
 @click.group()
 def plugins():
     """Manage TaskCrafter plugins."""
-    init_plugins()
+    validate_and_initialize()
 
 
 @plugins.command("list")

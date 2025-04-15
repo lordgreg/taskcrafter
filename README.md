@@ -136,6 +136,13 @@ Targets:
       Its called exit. For now, only string is being checked, no need for new
       PluginType Enum
 
+- [x] Support for external plugins
+
+      You can just name the plugin in jobs YAML file as `file:/path/to/plugin.py`.
+
+      Please check the source code from the plugin before using it! I am not
+      responsible for any issues caused by using external plugins.
+
 - [ ] Docs: Document plugin dev best practices
 - [ ] Add `--log-file` and `--log-level` CLI flag
 - [ ] More unit tests, get to 100% code coverage 😊

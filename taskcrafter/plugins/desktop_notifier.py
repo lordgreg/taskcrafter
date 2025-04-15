@@ -18,7 +18,7 @@ from taskcrafter.models.plugin import PluginInterface
 
 
 class Plugin(PluginInterface):
-    name = "desktop-notifier"
+    name = "Desktop Notifier"
     description = "Sends a notification to the desktop."
 
     def run(self, params: dict):

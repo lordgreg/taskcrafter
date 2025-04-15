@@ -61,12 +61,12 @@
             "args": "plugins list"
         },
         {
-            "name": "plugin info delayed_echo",
+            "name": "plugin info batman",
             "type": "debugpy",
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": "plugins info delayed_echo"
+            "args": "plugins info batman"
         },
     ]
 }

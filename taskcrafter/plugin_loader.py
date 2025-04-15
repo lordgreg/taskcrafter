@@ -7,6 +7,7 @@ from taskcrafter.logger import app_logger
 from taskcrafter.models.plugin import PluginEntry, PluginInterface
 from taskcrafter.exceptions.plugin import (
     PluginExecutionError,
+    PluginExternalError,
     PluginNotFoundError,
     PluginWrongInterfaceError,
 )
@@ -14,30 +15,59 @@ from taskcrafter.exceptions.plugin import (
 registry: dict[str, PluginEntry] = {}
 
 
-def init_plugins():
+def init_plugins(yaml: dict):
     plugin_dir = pathlib.Path(__file__).parent / "plugins"
+
+    external_plugins = get_external_plugin_names(yaml.get("jobs"))
+
+    for plugin_path in external_plugins:
+        plugin_name = pathlib.Path(plugin_path).stem
+        spec = importlib.util.spec_from_file_location(
+            f"taskcrafter.plugins.external.{plugin_name}", plugin_path
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        app_logger.debug(f"Loading external plugin: {plugin_name} ({plugin_path})")
+        import_and_validate_plugin(plugin_name, module)
+
     for file in os.listdir(plugin_dir):
         if file.endswith(".py") and file != "__init__.py":
+            file_name = file[:-3]
             module_name = f"taskcrafter.plugins.{file[:-3]}"
-            try:
-                module = importlib.import_module(module_name)
-                if hasattr(module, "Plugin") and validate_plugin(module.Plugin):
+            module = importlib.import_module(module_name)
+            import_and_validate_plugin(file_name, module)
 
-                    docgen = get_plugin_doc(module)
 
-                    instance = module.Plugin()
-                    registry[instance.name] = PluginEntry(instance, docgen=docgen)
-                else:
-                    raise PluginWrongInterfaceError(
-                        f"Plugin {module_name} does not implement PluginInterface."
-                    )
-            except Exception as e:
-                app_logger.warning(f"Failed to load plugin '{file}': {e}")
-                raise e
+def import_and_validate_plugin(name: str, module):
+    try:
+
+        if hasattr(module, "Plugin") and validate_plugin(module.Plugin):
+            docgen = get_plugin_doc(module)
+
+            instance = module.Plugin()
+            registry[name] = PluginEntry(instance, docgen=docgen)
+        else:
+            raise PluginWrongInterfaceError(
+                f"Plugin {module.__name__} ({name}) does not implement PluginInterface."
+            )
+    except Exception as e:
+        app_logger.warning(f"Failed to load plugin '{module.__name__}': {e}")
+        raise e
 
 
 def plugin_list() -> list[PluginEntry]:
     return registry.values()
+
+
+def get_external_plugin_names(yaml: dict) -> list[str]:
+    try:
+        return [
+            job["plugin"].split(":")[1]
+            for job in yaml
+            if job["plugin"].startswith("file:")
+        ]
+    except KeyError:
+        raise PluginExternalError("Cannot search for external plugins.")
 
 
 def plugin_lookup(id: str) -> PluginEntry:
