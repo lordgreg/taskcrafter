@@ -34,11 +34,7 @@ coverage:
 	pytest --cov=$(SRC_DIR) --cov-report=term-missing --cov-report html $(TEST_DIR)
 
 build:
-	pyinstaller --onefile --name $(APP_NAME) --clean $(ENTRY_POINT) \
-		--add-data "$(SRC_DIR)/plugins:$(SRC_DIR)/plugins" \
-		--add-data "examples/:examples/" \
-		--hidden-import "desktop_notifier" \
-		--hidden-import "desktop_notifier.resources"
+	pyinstaller taskcrafter.spec
 
 all: format lint test
 

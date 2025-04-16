@@ -35,3 +35,7 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Python3.8 PyInstaller Linux AMD64
+      uses: action-python/pyinstaller-py3.8@v1.0.0
+      with:
+        spec: taskcrafter.spec

@@ -1,7 +1,6 @@
 __pycache__
 build
 dist
-*.spec
 .coverage
 .mypy_cache
 .pytest_cache
