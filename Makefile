@@ -36,7 +36,9 @@ coverage:
 build:
 	pyinstaller --onefile --name $(APP_NAME) --clean $(ENTRY_POINT) \
 		--add-data "$(SRC_DIR)/plugins:$(SRC_DIR)/plugins" \
-		--add-data "examples/:examples/"
+		--add-data "examples/:examples/" \
+		--hidden-import "desktop_notifier" \
+		--hidden-import "desktop_notifier.resources"
 
 all: format lint test
 

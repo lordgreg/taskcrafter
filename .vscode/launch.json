@@ -1,81 +1,85 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "noarg",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": ""
-        },
-        {
-            "name": "jobs list",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": "jobs list"
-        },
-        {
-            "name": "run all",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": "jobs run"
-        },
-        {
-            "name": "validate",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": "jobs validate"
-        },
-        {
-            "name": "run containers",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": "--file jobs/containers.yaml jobs run"
-        },
-        {
-            "name": "run single",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": "jobs run --job execute_binary"
-        },
-        {
-            "name": "plugins list",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": "plugins list"
-        },
-        {
-            "name": "plugin info batman",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": "plugins info batman"
-        },
-        {
-            "name": "run specific job file",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": "--file jobs/${command:pickArgs}.yaml jobs run",
-
-        },
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "noarg",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": ""
+    },
+    {
+      "name": "jobs list",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": "jobs list"
+    },
+    {
+      "name": "run all",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": "jobs run"
+    },
+    {
+      "name": "validate",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": "jobs validate"
+    },
+    {
+      "name": "run containers",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": "--file jobs/containers.yaml jobs run"
+    },
+    {
+      "name": "run desktop_example",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": "--file examples/jobs/desktop_example.yaml jobs run"
+    },
+    {
+      "name": "run single",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": "jobs run --job execute_binary"
+    },
+    {
+      "name": "plugins list",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": "plugins list"
+    },
+    {
+      "name": "plugin info batman",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": "plugins info batman"
+    },
+    {
+      "name": "run specific job file",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": "--file ${command:pickArgs} jobs run"
+    }
+  ]
 }
