@@ -6,8 +6,7 @@
       "type": "debugpy",
       "request": "launch",
       "program": "main.py",
-      "console": "integratedTerminal",
-      "args": ""
+      "console": "integratedTerminal"
     },
     {
       "name": "jobs list",
@@ -15,7 +14,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": "jobs list"
+      "args": ["jobs", "list"]
     },
     {
       "name": "run all",
@@ -23,7 +22,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": "jobs run"
+      "args": ["jobs", "run"]
     },
     {
       "name": "validate",
@@ -31,7 +30,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": "jobs validate"
+      "args": ["jobs", "validate"]
     },
     {
       "name": "run containers",
@@ -39,7 +38,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": "--file jobs/containers.yaml jobs run"
+      "args": ["--file", "jobs/containers.yaml", "jobs", "run"]
     },
     {
       "name": "run desktop_example",
@@ -47,7 +46,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": "--file examples/jobs/desktop_example.yaml jobs run"
+      "args": ["--file", "examples/jobs/desktop_example.yaml", "jobs", "run"]
     },
     {
       "name": "run single",
@@ -55,7 +54,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": "jobs run --job execute_binary"
+      "args": ["jobs", "run", "--job", "execute_binary"]
     },
     {
       "name": "plugins list",
@@ -63,7 +62,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": "plugins list"
+      "args": ["plugins", "list"]
     },
     {
       "name": "plugin info batman",
@@ -71,7 +70,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": "plugins info batman"
+      "args": ["plugins", "info", "batman"]
     },
     {
       "name": "run specific job file",
@@ -79,7 +78,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": "--file ${command:pickArgs} jobs run"
+      "args": ["--file", "${command:pickArgs}", "jobs", "run"]
     }
   ]
 }

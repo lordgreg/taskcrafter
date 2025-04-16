@@ -182,12 +182,12 @@ def plugins_list():
 @click.argument("name")
 def plugin_info(name):
     """
-    Show detailed info about a specific plugin.
+     Show detailed info about a specific plugin.
 
     Examples:
 
-    \b
-        taskcrafter plugins info echo
+     \b
+         taskcrafter plugins info echo
     """
     plugin = plugin_lookup(name)
 

@@ -1,9 +1,33 @@
+from datetime import datetime
+
 def apply_template(value: str, context: dict) -> str:
     """Replace known placeholders in the value using context dictionary."""
     for key, val in context.items():
         placeholder = f"%{key.upper()}%"
         value = value.replace(placeholder, str(val))
     return value
+
+def context(job) -> dict:
+    """Create a context dictionary for templating."""
+
+    # create dictionary with params where key is job_params_{param_name}
+    # and value is the param value
+    job_params = {f"job_params_{k}": v for k, v in job.params.items()}
+
+    return {
+        "job_id": job.id,
+        "job_name": job.name,
+        "job_plugin": job.plugin,
+        "job_schedule": job.schedule,
+        "job_on_success": job.on_success,
+        "job_on_failure": job.on_failure,
+        "job_on_finish": job.on_finish,
+        "job_depends_on": job.depends_on,
+        "job_enabled": job.enabled,
+        "job_retries": job.retries,
+        "job_timeout": job.timeout,
+        "current_time": datetime.now().isoformat(),
+    } | job_params
 
 
 def apply_templates_to_params(params: dict, context: dict) -> dict:

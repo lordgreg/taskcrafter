@@ -1,6 +1,5 @@
 from copy import deepcopy
 import time
-from datetime import datetime
 from taskcrafter.exceptions.job import (
     JobFailedError,
     JobKillSignalError,
@@ -13,33 +12,10 @@ from taskcrafter.exceptions.plugin import (
 from taskcrafter.plugin_loader import plugin_execute
 from taskcrafter.logger import app_logger
 from taskcrafter.container import run_job_in_docker
-from taskcrafter.util.templater import apply_templates_to_params
+from taskcrafter.util.templater import apply_templates_to_params, context
 from taskcrafter.models.job import Job, JobStatus
 from taskcrafter.util.yaml import get_yaml_from_string
 from taskcrafter.input_output_resolver import CacheManager, InputResolver
-
-
-def context(job) -> dict:
-    """Create a context dictionary for templating."""
-
-    # create dictionary with params where key is job_params_{param_name}
-    # and value is the param value
-    job_params = {f"job_params_{k}": v for k, v in job.params.items()}
-
-    return {
-        "job_id": job.id,
-        "job_name": job.name,
-        "job_plugin": job.plugin,
-        "job_schedule": job.schedule,
-        "job_on_success": job.on_success,
-        "job_on_failure": job.on_failure,
-        "job_on_finish": job.on_finish,
-        "job_depends_on": job.depends_on,
-        "job_enabled": job.enabled,
-        "job_retries": job.retries,
-        "job_timeout": job.timeout,
-        "current_time": datetime.now().isoformat(),
-    } | job_params
 
 
 class JobManager:
