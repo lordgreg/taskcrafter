@@ -1,3 +1,26 @@
+# This is an example of desktop notifications
+# We are checking if rclone is running by using the
+# `schedule` parameter, which reads the crontab string
+# and executes the command every minute
+#
+# - we start with check_rclone_health, which is using
+#   the `binary` plugin and will return the rclone pid
+#   if rclone is running, otherwise it will exit with the
+#   error code 1
+#
+#   Since this job has an `on_failure` hook, it will
+#   be executed when the rclone process is not running
+#
+# - If the first job executes on_failure, notification_on_failure
+#   will get executed and present a desktop notification
+#   using the `notifier` plugin
+#
+# - Additionally, as you see, from the `on_failure` of the
+#   check_rclone_health, we could also use the plugin `exit`
+#   which serves as the "kill switch" plugin. This is a
+#   special plugin that will kill the taskcrafter process
+#   completely.
+
 jobs:
   - id: notification_on_failure
     name: Notification on Failure

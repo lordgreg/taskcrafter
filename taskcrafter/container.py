@@ -42,4 +42,5 @@ def run_job_in_docker(job: Job, params: dict = None):
         app_logger.error(f"Container execution failed: {e}")
         raise ContainerError(e)
     finally:
-        container.remove()
+        if container is not None:
+            container.remove()

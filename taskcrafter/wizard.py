@@ -11,7 +11,8 @@ TEMPLATE_MAP: dict[str, dict[str, str]] = {
     "5": {"desktop_example": "Desktop notifications example"},
     "6": {"inputs_outputs": "Using inputs/outputs"},
     "7": {"test_build_and_deploy": "Test build and deploy"},
-    "8": {"empty_file": "Empty file"},
+    "8": {"everything", "Everything together"},
+    "9": {"empty_file": "Empty file"},
 }
 
 

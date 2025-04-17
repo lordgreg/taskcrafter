@@ -1,4 +1,9 @@
 from datetime import datetime
+import getpass
+import platform
+import socket
+import os
+
 
 def apply_template(value: str, context: dict) -> str:
     """Replace known placeholders in the value using context dictionary."""
@@ -6,6 +11,7 @@ def apply_template(value: str, context: dict) -> str:
         placeholder = f"%{key.upper()}%"
         value = value.replace(placeholder, str(val))
     return value
+
 
 def context(job) -> dict:
     """Create a context dictionary for templating."""
@@ -27,6 +33,18 @@ def context(job) -> dict:
         "job_retries": job.retries,
         "job_timeout": job.timeout,
         "current_time": datetime.now().isoformat(),
+        "os_name": platform.system(),
+        "os_version": platform.version(),
+        "os_release": platform.release(),
+        "architecture": platform.machine(),
+        "machine": platform.machine(),
+        "hostname": socket.gethostname(),
+        "username": getpass.getuser(),
+        "date": datetime.now().date().isoformat(),
+        "time": datetime.now().time().isoformat(timespec="seconds"),
+        "datetime": datetime.now().isoformat(timespec="seconds"),
+        "timestamp": int(datetime.now().timestamp()),
+        "cwd": os.getcwd(),
     } | job_params
 
 

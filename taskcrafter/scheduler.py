@@ -117,7 +117,7 @@ class SchedulerManager:
                 self.schedule_job(
                     job,
                     force=True,
-                    is_hook=True,
+                    hookType=hookType,
                     schedule_job_id=schedule_job_id,
                 )
             return hook
@@ -125,7 +125,9 @@ class SchedulerManager:
             # it just means we dont have a hook defined in yaml file
             pass
 
-    def schedule_job(self, job, schedule_job_id=None, is_hook=False, force=False):
+    def schedule_job(
+        self, job, schedule_job_id=None, hookType: HookType = None, force=False
+    ):
         cron_schedule = job.schedule
         job_id = job.id
 
@@ -145,7 +147,12 @@ class SchedulerManager:
             self.job_manager.run_job,
             trigger=trigger,
             args=[job],
-            kwargs={"force": force},
+            kwargs={
+                "force": force,
+                "execution_stack": (
+                    [f"Hook({hookType.value})"] if hookType is not None else []
+                ),
+            },
             id=job_id,
         )
 

@@ -1,3 +1,23 @@
+# This is an example of jobs with hooks
+# Hooks are special "global" jobs that are executed
+#
+# Current available hooks are:
+#   - before_all
+#   - after_all
+#   - after_job
+#   - before_job
+#   - on_error
+#
+# In the example below, you see that
+# - we have a job that throws an exception
+# - this means, hook on_error `hello_world_failure` will get executed
+# - simultanesly, job `hello` will get executed
+# - `hello_world_success` and `hello_world_failure` jobs are
+#   disabled, that means that they will not get executed
+#   as normal jobs; however, you can reference them in other
+#   jobs.
+# - lastly `after_all` hook will get executed
+
 jobs:
   - id: just_throwing_exceptions
     name: Exception Thrower 🐧
@@ -14,14 +34,14 @@ jobs:
   - id: hello_world_success
     enabled: false
     name: Hello world Success Job
-    plugin: desktop-notifier
+    plugin: notifier
     params:
       message: "We succeeded!"
 
   - id: hello_world_failure
     enabled: false
     name: Hello world Failure Job
-    plugin: desktop-notifier
+    plugin: notifier
     params:
       message: "We failed!"
 

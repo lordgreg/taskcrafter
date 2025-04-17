@@ -141,12 +141,12 @@ class JobManager:
                         process.join()
                         queue_result = queue.get()
 
-                        if isinstance(queue_result, Exception) or job.plugin == "exit":
-                            # add job to executed jobs since its kill switch afterwards.
-                            job.result.stop()
-                            job.result.set_status(JobStatus.ERROR)
-                            self.executed_jobs.append(deepcopy(job))
+                        if job.plugin == "exit":
                             raise JobKillSignalError(queue_result)
+
+                        if isinstance(queue_result, Exception):
+                            job.result.set_status(JobStatus.ERROR)
+                            raise queue_result
 
                     process.terminate()
 

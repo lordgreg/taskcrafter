@@ -1,3 +1,10 @@
+# This is an example of job running external plugin
+# Should you write your own plugin, just remember to add a
+# file:./path/to/your/plugin.py to the plugin parameter.
+#
+# If you are using an external plugin, downloaded from the internet,
+# please make sure you fully understand its source code. If not,
+# please don't use it or ask the community for help.
 jobs:
   - id: exit_because
     name: Exit because

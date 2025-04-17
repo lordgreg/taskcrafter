@@ -1,9 +1,27 @@
+# This example shows the simple process using the parameters
+# `depends_on` and `on_success`
+# You can also use the `on_failure` and `on_finish` local hooks
+#
+# The workflow is an example of a simple ci/cd pipeline
+# that builds, tests and deploys a project
+# - First, the `test` job gets executed using url plugin and
+#   returns the body of the called url
+# - Then, `build` job gets executed using binary plugin
+# - Finally, `deploy` job gets executed using delayed_echo plugin
+#   which will execute `deploy_success` job after 5 seconds
+#
+#   See how we also used the `retries` parameter in the deploy job
+#   to retry the deploy job in case of failure 3 times, every 60 seconds
+
 jobs:
   - id: deploy
     name: Deploy Job
     plugin: echo
     params:
       message: "Deploying the project..."
+    retries:
+      count: 3
+      interval: 60
     depends_on:
       - build
       - test
@@ -19,11 +37,15 @@ jobs:
   - id: build
     name: Build Job
     plugin: binary
+    input:
+      result_from_test: "{result:test}"
     params:
       command: bash
       args:
         - "-c"
         - echo "Your shell is $SHELL $((RANDOM % 100))"
+        - echo -e "The result of test job is:\n{result:test}"
+
   - id: deploy_success
     enabled: false
     name: Deploy Success Job

@@ -1,6 +1,6 @@
 jobs:
-  - id: just_simple
-    name: Hi
+  - id: hello_taskcrafter
+    name: Hello Taskcrafter
     plugin: echo
     params:
-      message: "Hi, this is just simple."
+      message: "Hello %JOB_NAME%!"

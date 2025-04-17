@@ -1,0 +1,56 @@
+# In this example, all possible use-cases are covered
+
+jobs:
+  - id: hello
+    name: Hello World Job
+    plugin: echo
+    params:
+      message: "Hello everyone, I was being called from %JOB_ID%"
+    on_finish:
+      - hello-2
+
+  - id: hello-2
+    name: Hello World Job 2
+    plugin: echo
+    input:
+      msg_from_hello2: "{result:hello:message}"
+
+  - id: hello-3
+    name: Hello World Job 3
+    plugin: echo
+    input:
+      msg_from_hello2: "Here is the message from second job: {result:hello-2}"
+    depends_on:
+      - hello-2
+
+  - id: container-joins
+    name: Container Job
+    input:
+      world: "{result:hello:message}"
+      result_from_hello2: "{result:hello2}"
+      result_from_hello3: "{result:hello3}"
+    container:
+      image: alpine:latest
+      type: podman
+      command: |-
+        sh -c '
+        echo "We got plenty of inputs:"
+        echo -e "hello job gave us:\n ${world}"
+        echo -e "hello-2 job gave us:\n ${result_from_hello2}"
+        echo -e "hello-3 job gave us:\n ${result_from_hello3}"
+          '
+    depends_on:
+      - hello
+      - hello-2
+      - hello-3
+
+  - id: hook_after_all
+    name: Hook After All
+    enabled: false
+    plugin: echo
+    input:
+      hello3_result: "{result:hello3}"
+
+hooks:
+  after_job:
+    - hook_after_all

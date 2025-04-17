@@ -1,3 +1,22 @@
+# This is an example of jobs running using the container plugin
+# The process is:
+# 1. we create a file using binary plugin (without a container)
+#    since the hello_from_container depends_on the create_file
+#    it will wait for the file to be created
+# 2. we use the alpine:latest container and map the volumes
+#     - /tmp/configs:/app/configs means we map the directory in which
+#       the file was created to /app/configs in the container
+# 3. within the container, we execute some commands, then
+#    we read the file to see if it was mapped properly
+#    and we append a text string to the exact same file
+# 4. note that we added the privileged parameter to the container
+#    otherwise we couldnt access the host's /tmp directory
+# 5. jobs result_from_file and result_from_result are executed after
+#     - result_from_file will again read the file and echo the contents
+#     - result_from_result will echo the result of the hello_from_container
+#       which is the full output of the command we've entered (everything
+#       that went to the stdout)
+#
 jobs:
   - id: create_file
     name: Create File Job
@@ -22,13 +41,14 @@ jobs:
       image: alpine:latest
       command: |-
         sh -c '
-          echo "WHO AM I? $(whoami)"
-          echo ">>>" ${message}! "<<<" && env
-          tree -a /app/configs
+          echo "Who am I? $(whoami)"
+          echo "Message is: ${message}"
+          echo "Out envars are:"
+          env
+          echo "Here is the content of the file:"
           cat /app/configs/hello.txt
-
+          echo "Adding some text to the file..."
           echo -e "\n\nHi from ${job_id}!\nThis file was created in ${job_name} job." >> /app/configs/hello.txt
-          cat /app/configs/hello.txt
         '
       engine: podman
       privileged: true

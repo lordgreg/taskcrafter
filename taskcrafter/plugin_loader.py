@@ -88,8 +88,7 @@ def plugin_execute(name: str, params: dict, queue: Queue) -> PluginEntry:
         queue.put(res)
         return plugin
     except Exception as e:
-        queue.put(e)
-        raise PluginExecutionError()
+        queue.put(PluginExecutionError(e))
 
 
 def validate_plugin(instance) -> bool:

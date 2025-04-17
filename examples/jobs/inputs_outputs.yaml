@@ -1,17 +1,37 @@
+# This is an example of jobs with inputs and outputs
+# hello job, using echo plugin, we pass message and title
+# The echo prints, but also returns all keys from the params
+# so we can use them in the next task
+# hello-2 takes the output of hello as input
+#   - every input will get automatically added to the params of the
+#     current task.
+#   - see we added {result:hello} and {env:SHELL}, both as message inputs
+#     hello-2 will only print the {env:SHELL} since it will overwrite the
+#     {result:hello} parameter
+# hello-3 uses the output of both previous jobs
+#   - se we added not only our own text, but also the output of hello-2
+#     and hello.
+#
+# Current valid templates in `input` are:
+#   - {result:job_id}     if return value of the plugins is a string
+#   - {result:job_id:key} if return value of the plugin is a dict
+#   - {env:key}           if key is in the environment
+#   - {file:path}         if path is a file
 jobs:
 
   - id: hello
     name: Hello World Job
     plugin: echo
     params:
-      message: "Hello, World BATMAN!!"
+      message: "Hello everyone!"
+      title: "Building Taskcrafter"
 
   - id: hello-2
     name: Hello World Job 2
     plugin: echo
     input:
-      message: "result:hello"
-      message: "env:SHELL"
+      message: "{result:hello:message}"
+      message: "{env:SHELL}"
     depends_on:
       - hello
 
@@ -19,6 +39,7 @@ jobs:
     name: Hello World Job 3
     plugin: echo
     input:
-      message: "result:hello"
+      message: "Here is the title from first job: {result:title}"
+      something_else: "Here is the message from second job: {result:hello-2}"
     depends_on:
       - hello-2
