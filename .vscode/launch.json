@@ -49,6 +49,14 @@
       "args": ["--file", "examples/jobs/desktop_example.yaml", "jobs", "run"]
     },
     {
+      "name": "run wizard",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": ["--file", "demo/non_existing.yaml", "jobs", "run"]
+    },
+    {
       "name": "run single",
       "type": "debugpy",
       "request": "launch",
@@ -78,7 +86,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": ["--file", "${command:pickArgs}", "jobs", "run"]
+      "args": ["--file", "examples/jobs/jobs_with_hooks.yaml", "jobs", "run"]
     }
   ]
 }
