@@ -36,7 +36,7 @@ def test_run_job_in_docker(mock_docker_client):
     mock_container_instance.wait.return_value = {"StatusCode": 0}
     mock_container_instance.logs.return_value = b"Hello World"
 
-    exit_code, logs = run_job_in_docker(job, {})
+    logs = run_job_in_docker(job, {})
 
     mock_docker_client.assert_called_once_with(
         base_url=job.container.get_engine_url(),
@@ -58,5 +58,4 @@ def test_run_job_in_docker(mock_docker_client):
     # mock_container_instance.wait.assert_called_once()
     mock_container_instance.logs.assert_called_once()
 
-    assert exit_code == 0
     assert logs == "Hello World"
