@@ -45,8 +45,26 @@ jobs:
     params:
       message: "We failed!"
 
+  - id: hello_before_job
+    enabled: false
+    name: BEFORE JOB
+    plugin: echo
+    params:
+      message: "before_job: %JOB_ID%!"
+
+  - id: hello_after_job
+    enabled: false
+    name: AFTER JOB
+    plugin: echo
+    params:
+      message: "after_job: %JOB_ID%!"
+
 hooks:
   after_all:
     - hello_world_success
   on_error:
     - hello_world_failure
+  before_job:
+    - hello_before_job
+  after_job:
+    - hello_after_job

@@ -48,6 +48,9 @@ class JobManager:
 
         return job
 
+    def add_job_to_stack(self, job: Job):
+        self.jobs.append(job)
+
     def load_jobs(self, content: str):
 
         jobs = []

@@ -15,3 +15,7 @@ class HookType(Enum):
 class Hook:
     type: HookType = None
     jobs: list[Job] = field(default_factory=list)
+    parent_job: str = None
+
+    def is_hook_job(self):
+        return (self.parent_job or "").startswith("Hook(")

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass
 from taskcrafter.exceptions.hook import HookError, HookNotFound
 from taskcrafter.job_loader import JobManager
@@ -23,7 +24,7 @@ class HookManager:
 
         for hook_name, job_array in self.hooks_yaml.items():
             job_array_obj = [
-                self.job_manager.job_get_by_id(job_id) for job_id in job_array
+                deepcopy(self.job_manager.job_get_by_id(job_id)) for job_id in job_array
             ]
 
             try:

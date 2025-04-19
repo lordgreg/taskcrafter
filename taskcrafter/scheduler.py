@@ -15,7 +15,7 @@ from taskcrafter.exceptions.job import JobKillSignalError
 from taskcrafter.logger import app_logger
 from taskcrafter.job_loader import JobManager
 from taskcrafter.hook_loader import HookManager
-from taskcrafter.models.hook import HookType
+from taskcrafter.models.hook import Hook, HookType
 
 
 class SchedulerManager:
@@ -23,7 +23,7 @@ class SchedulerManager:
         self.scheduler = BackgroundScheduler()
         self.job_manager = job_manager
         self.hook_manager = hook_manager
-        self.executed_hooks = []
+        self.executed_hooks: list[Hook] = []
         self._event = threading.Event()
 
     def start_scheduler(self):
@@ -97,10 +97,34 @@ class SchedulerManager:
         return schedule_id
 
     def schedule_hook_jobs(self, hookType: HookType, event=None):
+        # things can get messy here so:
+        # the hook can get executed if:
+        # - current event job isnt hook job
+        # - hookType before_all or hookType after_all can get executed only once
+        # - all other hookTypes can get executed several times
         try:
             hook = self.hook_manager.hook_get_by_type(hookType) or None
-            if hook is not None and hook in self.executed_hooks:
-                app_logger.info(f"Hook already executed: {hook.type}")
+
+            # before_all and after_all dont have any parent.
+            if (
+                not hookType == HookType.BEFORE_ALL
+                and not hookType == HookType.AFTER_ALL
+            ):
+                hook.parent_job = event.job_id
+
+            if hook is None:
+                app_logger.debug(f"Hook {hookType} does not exist.")
+                return None
+            elif hook.is_hook_job():
+                app_logger.debug(
+                    f"Job {event.job_id} is hook job. Hook {hookType} will not be executed."
+                )
+                return None
+            elif hook in self.executed_hooks and hook.type in [
+                HookType.BEFORE_ALL,
+                HookType.AFTER_ALL,
+            ]:
+                app_logger.debug(f"Hook already executed: {hook.type}")
                 return None
 
             self.executed_hooks.append(hook)
@@ -110,24 +134,27 @@ class SchedulerManager:
             return None
 
         try:
-            hook = self.hook_manager.hook_get_by_type(hookType)
             for job in hook.jobs:
-                schedule_job_id = f"Hook({hook.type})__{job.id}"
-                app_logger.info(f"Executing hook {hook.type} - {job.id}")
+                # enable it
+                job.enabled = True
+                # add job to stack
+                self.job_manager.add_job_to_stack(job)
+
+                schedule_job_id = (
+                    f"Hook({hookType.value};parent={event.job_id})__{job.id}"
+                )
+
                 self.schedule_job(
                     job,
                     force=True,
-                    hookType=hookType,
+                    hook=hook,
                     schedule_job_id=schedule_job_id,
                 )
             return hook
         except ValueError:
-            # it just means we dont have a hook defined in yaml file
             pass
 
-    def schedule_job(
-        self, job, schedule_job_id=None, hookType: HookType = None, force=False
-    ):
+    def schedule_job(self, job, schedule_job_id=None, hook: Hook = None, force=False):
         cron_schedule = job.schedule
         job_id = job.id
 
@@ -143,15 +170,17 @@ class SchedulerManager:
         else:
             trigger = CronTrigger.from_crontab(cron_schedule)
 
+        execution_stack = []
+        if hook is not None:
+            execution_stack = [f"Hook({hook.type.value};parent={hook.parent_job})"]
+
         self.scheduler.add_job(
             self.job_manager.run_job,
             trigger=trigger,
             args=[job],
             kwargs={
                 "force": force,
-                "execution_stack": (
-                    [f"Hook({hookType.value})"] if hookType is not None else []
-                ),
+                "execution_stack": execution_stack,
             },
             id=job_id,
         )
