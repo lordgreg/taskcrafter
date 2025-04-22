@@ -140,9 +140,12 @@ class SchedulerManager:
                 # add job to stack
                 self.job_manager.add_job_to_stack(job)
 
-                schedule_job_id = (
-                    f"Hook({hookType.value};parent={event.job_id})__{job.id}"
-                )
+                # if no event.job_id, then also no parent
+                parent_str = ""
+                if hook.parent_job is not None:
+                    parent_str = f";parent={hook.parent_job}"
+
+                schedule_job_id = f"Hook({hookType.value}{parent_str})__{job.id}"
 
                 self.schedule_job(
                     job,
@@ -172,7 +175,7 @@ class SchedulerManager:
 
         execution_stack = []
         if hook is not None:
-            execution_stack = [f"Hook({hook.type.value};parent={hook.parent_job})"]
+            execution_stack = [schedule_job_id]
 
         self.scheduler.add_job(
             self.job_manager.run_job,

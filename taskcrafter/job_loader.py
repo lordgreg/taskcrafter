@@ -68,6 +68,24 @@ class JobManager:
 
         return jobs
 
+    def can_job_be_run(self, job: Job):
+        # is job enabled?
+        if not job.enabled:
+            return False
+
+        if job.result.get_status() != JobStatus.PENDING:
+            return False
+
+        # check if job has array of dependencies,
+        # if so, check if all dependencies have been executed
+        for dep in job.depends_on:
+            dep_status = self.job_get_by_id(dep).result.get_status()
+            if dep_status != JobStatus.SUCCESS:
+                app_logger.debug(f"Job {job.id} is waiting for job {dep} to finish.")
+                return False
+
+        return True
+
     def run_job(self, job: Job, execution_stack: list[str] = [], force: bool = False):
         """Run a job."""
         execution_stack = execution_stack or []
@@ -110,6 +128,7 @@ class JobManager:
                 job.params[key] = self.resolver.resolve(value)
 
         app_logger.info(f"Running job: {job.id} ({' -> '.join(execution_stack)})...")
+        job.result.set_status(JobStatus.RUNNING)
         attempt = 0
 
         while attempt <= (job.retries.count):
@@ -161,7 +180,6 @@ class JobManager:
 
                 # if scheduler job, then status is RUNNING
                 if job.schedule:
-                    job.result.set_status(JobStatus.RUNNING)
                     job.result.retries += 1
                 else:
                     job.result.set_status(JobStatus.SUCCESS)
@@ -195,6 +213,7 @@ class JobManager:
                 job.id in j.depends_on
                 and j.result.get_status() == JobStatus.PENDING
                 and job.result.get_status() == JobStatus.SUCCESS
+                and self.can_job_be_run(j)
             )
         ]
         for dep_job in dependant_jobs:

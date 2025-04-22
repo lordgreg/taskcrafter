@@ -69,7 +69,7 @@ class InputResolver:
         if not isinstance(value, str):
             return value
 
-        pattern = re.compile(r"{(result|env|file):([a-zA-Z0-9-_.:\\/]+)}")
+        pattern = re.compile(r"\${(result|env|file):([a-zA-Z0-9-_.:\\/]+)}")
 
         def replace_token(match):
             token_type = match.group(1)

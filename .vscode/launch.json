@@ -38,7 +38,7 @@
       "request": "launch",
       "program": "main.py",
       "console": "integratedTerminal",
-      "args": ["--file", "jobs/containers.yaml", "jobs", "run"]
+      "args": ["--file", "examples/jobs/containers.yaml", "jobs", "run"]
     },
     {
       "name": "run desktop_example",
@@ -47,6 +47,22 @@
       "program": "main.py",
       "console": "integratedTerminal",
       "args": ["--file", "examples/jobs/desktop_example.yaml", "jobs", "run"]
+    },
+    {
+      "name": "run inputs_outputs",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": ["--file", "examples/jobs/inputs_outputs.yaml", "jobs", "run"]
+    },
+    {
+      "name": "run everything",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "args": ["--file", "examples/jobs/everything.yaml", "jobs", "run"]
     },
     {
       "name": "run wizard",

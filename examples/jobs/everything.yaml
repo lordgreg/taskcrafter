@@ -5,33 +5,33 @@ jobs:
     name: Hello World Job
     plugin: echo
     params:
-      message: "Hello everyone, I was being called from %JOB_ID%"
-    on_finish:
-      - hello-2
+      message: "Hello everyone, I was being called from ${JOB_ID}"
 
   - id: hello-2
     name: Hello World Job 2
     plugin: echo
     input:
-      msg_from_hello2: "{result:hello:message}"
+      msg_from_hello2: "HELLO TWO: ${result:hello:message}"
+    depends_on:
+      - hello
 
   - id: hello-3
     name: Hello World Job 3
     plugin: echo
     input:
-      msg_from_hello2: "Here is the message from second job: {result:hello-2}"
+      msg_from_hello3: "Here is the message from second job: ${result:hello-2:msg_from_hello2}"
     depends_on:
       - hello-2
 
   - id: container-joins
     name: Container Job
     input:
-      world: "{result:hello:message}"
-      result_from_hello2: "{result:hello2}"
-      result_from_hello3: "{result:hello3}"
+      world: ${result:hello:message}
+      result_from_hello2: ${result:hello-2:msg_from_hello2}
+      result_from_hello3: ${result:hello-3:msg_from_hello3}
     container:
       image: alpine:latest
-      type: podman
+      engine: podman
       command: |-
         sh -c '
         echo "We got plenty of inputs:"
@@ -49,8 +49,8 @@ jobs:
     enabled: false
     plugin: echo
     input:
-      hello3_result: "{result:hello3}"
+      hello3_result: ${result:hello-3:msg_from_hello3}
 
 hooks:
-  after_job:
+  after_all:
     - hook_after_all

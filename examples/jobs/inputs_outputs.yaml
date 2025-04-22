@@ -23,15 +23,15 @@ jobs:
     name: Hello World Job
     plugin: echo
     params:
-      message: "Hello everyone!"
-      title: "Building Taskcrafter"
+      message: "Hello everyone, my job name is ${job_name}!"
+      title: "Building Taskcrafter with user ${USERNAME} on ${MACHINE}"
 
   - id: hello-2
     name: Hello World Job 2
     plugin: echo
     input:
-      message: "{result:hello:message}"
-      message: "{env:SHELL}"
+      message: ${result:hello:message}
+      message: ${env:SHELL}
     depends_on:
       - hello
 
@@ -39,7 +39,8 @@ jobs:
     name: Hello World Job 3
     plugin: echo
     input:
-      message: "Here is the title from first job: {result:title}"
-      something_else: "Here is the message from second job: {result:hello-2}"
+      message: "Here is the title from first job: ${result:hello:title}"
+      something_else: "Here is the message from second job: ${result:hello-2:message}"
+      HOWEVER: "however, we can use global envars such as ${HOSTNAME}"
     depends_on:
       - hello-2
