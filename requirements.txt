@@ -49,7 +49,7 @@ referencing==0.36.2
 requests==2.32.3
 rich==14.0.0
 rpds-py==0.24.0
-setuptools==78.1.1
+setuptools==78.1.0
 stack-data==0.6.3
 traitlets==5.14.3
 typing_extensions==4.13.2
